@@ -5,19 +5,29 @@ all: build test
 
 build:
 	@echo "Building..."
-	
-	
+
 	@go build -o main cmd/api/main.go
 
 # Run the application
 run:
 	@go run cmd/api/main.go
+
 # Create DB container
 docker-run:
 	@if docker compose up --build 2>/dev/null; then \
 		: ; \
 	else \
 		echo "Falling back to Docker Compose V1"; \
+		docker-compose up --build; \
+	fi
+
+# Docker Run for development
+docker-dev:
+	@if docker compose -f docker-compose.dev.yml watch 2>/dev/null; then \
+		: ; \
+	else \
+		echo "Falling back to Docker Compose V1 (no watch support)"; \
+		echo "docker-compose does not support 'watch'. Falling back to 'up --build'."; \
 		docker-compose up --build; \
 	fi
 

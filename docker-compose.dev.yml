@@ -21,14 +21,28 @@ services:
         condition: service_healthy
     networks:
       - choclacado
+    develop:
+      watch:
+        - action: sync+restart
+          path: ./cmd
+          target: /app/cmd
+        - action: sync+restart
+          path: ./internal
+          target: /app/internal
+        - action: rebuild
+          path: go.mod
+        - action: rebuild
+          path: go.sum
+
   frontend:
     build:
-      target: prod
+      target: dev
       context: ./frontend
       dockerfile: Dockerfile
+    command: ["pnpm", "run", "dev"]
     environment:
       API_URL: http://api:${API_PORT}
-      NODE_ENV: production
+      NODE_ENV: development
     ports:
       - "3000:3000"
     depends_on:
@@ -36,6 +50,13 @@ services:
         condition: service_started
     networks:
       - choclacado
+    develop:
+      watch:
+        - action: sync
+          path: ./frontend/src
+          target: /app/src
+        - action: rebuild
+          path: ./frontend/package.json
   psql_c:
     image: postgres:latest
     restart: unless-stopped
