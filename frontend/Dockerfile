@@ -27,7 +27,10 @@ RUN pnpm run build || (echo "Build failed" && exit 1)
 
 FROM base AS prod
 COPY --from=prod-deps /app/node_modules /app/node_modules
+COPY --from=prod-deps /app/package.json /app/package.json
+COPY --from=prod-deps /app/pnpm-lock.yaml /app/pnpm-lock.yaml
 COPY --from=build /app/.vinxi /app/.vinxi
 COPY --from=build /app/.output /app/.output
+
 EXPOSE 4242
 CMD [ "pnpm", "start"]
