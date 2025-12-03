@@ -21,8 +21,7 @@ ENV CI=true
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM base AS build
-COPY package.json  .
-COPY pnpm-lock.yaml .
+COPY .  .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build || (echo "Build failed" && exit 1)
 
