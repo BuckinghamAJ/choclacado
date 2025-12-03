@@ -33,4 +33,4 @@ COPY --from=build /app/.vinxi /app/.vinxi
 COPY --from=build /app/.output /app/.output
 
 EXPOSE 4242
-CMD [ "pnpm", "start"]
+CMD [ "pnpm", "prod"]
