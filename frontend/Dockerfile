@@ -15,12 +15,14 @@ CMD ["pnpm", "run", "dev"]
 
 
 FROM base AS prod-deps
-COPY package.json .
+COPY package.json  .
+COPY pnpm-lock.yaml .
 ENV CI=true
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-lockfile
 
 FROM base AS build
-COPY package.json .
+COPY package.json  .
+COPY pnpm-lock.yaml .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
 RUN pnpm run build || (echo "Build failed" && exit 1)
 
