@@ -1,33 +1,39 @@
-import { A } from "@solidjs/router";
-import Counter from "~/components/Counter";
-import { Badge } from "~/components/ui/Badge";
+import { A, createAsync, query, redirect, useNavigate } from "@solidjs/router";
+import { createSignal } from "solid-js";
+import Posts, { Post } from "~/components/Posts";
+
+import SideBar from "~/components/Sidebar";
+import MKInput from "~/components/ui/mk-input";
+import verifyUser from "~/lib/queries";
 
 export default function Home() {
+  const authUser = createAsync(() => verifyUser());
+  const [posts, setPosts] = createSignal<Post[]>([]);
+  const [search, setSearch] = createSignal("");
+
+  // TODO: Place Value to fetch posts
+
   return (
-    <main class="text-center mx-auto text-gray-700 p-4">
-      <h1 class="max-6-xs text-6xl text-sky-700 font-thin uppercase my-16 ">
-        Hello world!
-      </h1>
-      <Counter />
-      <Badge variant="error">Badge</Badge>
-      <p class="mt-8">
-        Visit{" "}
-        <a
-          href="https://solidjs.com"
-          target="_blank"
-          class="text-sky-600 hover:underline"
-        >
-          solidjs.com
-        </a>{" "}
-        to learn how to build Solid apps.
-      </p>
-      <p class="my-4">
-        <span>Home</span>
-        {" - "}
-        <A href="/about" class="text-sky-600 hover:underline">
-          About Page
-        </A>{" "}
-      </p>
+    <main class="w-full bg-white h-lvh mx-auto text-gray-700 p-4 relative bg-neutral-50 overflow-hidden">
+      <div class="w-full self-stretch px-12 inline-flex justify-start items-start gap-2.5">
+        <div class="flex-1 inline-flex flex-col justify-start items-start gap-2.5">
+          <div class="self-stretch h-9 justify-start text-slate-900 text-3xl font-semibold font-['Inter'] leading-9">
+            Discover Resources
+          </div>
+          <div class="self-stretch h-9 justify-start text-slate-900 text-xl font-normal font-['Inter'] leading-7">
+            Explore shared knowledge from our community
+          </div>
+          <MKInput
+            label=""
+            placeholder="Search resources..."
+            inputSignal={search}
+            inputSignalSetter={setSearch}
+            type="text"
+          ></MKInput>
+          <SideBar />
+          <Posts posts={posts()} />
+        </div>
+      </div>
     </main>
   );
 }
