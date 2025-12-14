@@ -2,6 +2,7 @@ import { createAsync, useLocation } from "@solidjs/router";
 import { Show } from "solid-js";
 import verifyUser from "~/lib/queries";
 import ShareResource from "./Share";
+import { useSidebar } from "./ui/sidebar";
 
 export default function Nav() {
   const authUser = createAsync(() => verifyUser());

@@ -1,14 +1,16 @@
 package database
 
 import (
+	"choclacado/sqlc/mkdb"
 	"context"
-	"database/sql"
 	"fmt"
 	"log"
 	"os"
 	"strconv"
 	"time"
 
+	"github.com/jackc/pgx/v5/pgtype"
+	"github.com/jackc/pgx/v5/pgxpool"
 	_ "github.com/jackc/pgx/v5/stdlib"
 	_ "github.com/joho/godotenv/autoload"
 )
@@ -19,13 +21,16 @@ type Service interface {
 	// The keys and values in the map are service-specific.
 	Health() map[string]string
 
+	// Returns queries to interact with
+	Queries() *mkdb.Queries
+
 	// Close terminates the database connection.
-	// It returns an error if the connection cannot be closed.
-	Close() error
+	Close()
 }
 
 type service struct {
-	db *sql.DB
+	db      *pgxpool.Pool
+	queries *mkdb.Queries
 }
 
 var (
@@ -44,12 +49,14 @@ func New() Service {
 		return dbInstance
 	}
 	connStr := os.Getenv("CHOCLACADO_DATABASE_URL")
-	db, err := sql.Open("pgx", connStr)
+	ctx := context.Background()
+	db, err := pgxpool.New(ctx, connStr)
 	if err != nil {
 		log.Fatal(err)
 	}
 	dbInstance = &service{
-		db: db,
+		db:      db,
+		queries: mkdb.New(db),
 	}
 	return dbInstance
 }
@@ -63,7 +70,7 @@ func (s *service) Health() map[string]string {
 	stats := make(map[string]string)
 
 	// Ping the database
-	err := s.db.PingContext(ctx)
+	err := s.db.Ping(ctx)
 	if err != nil {
 		stats["status"] = "down"
 		stats["error"] = fmt.Sprintf("db down: %v", err)
@@ -76,29 +83,24 @@ func (s *service) Health() map[string]string {
 	stats["message"] = "It's healthy"
 
 	// Get database stats (like open connections, in use, idle, etc.)
-	dbStats := s.db.Stats()
-	stats["open_connections"] = strconv.Itoa(dbStats.OpenConnections)
-	stats["in_use"] = strconv.Itoa(dbStats.InUse)
-	stats["idle"] = strconv.Itoa(dbStats.Idle)
-	stats["wait_count"] = strconv.FormatInt(dbStats.WaitCount, 10)
-	stats["wait_duration"] = dbStats.WaitDuration.String()
-	stats["max_idle_closed"] = strconv.FormatInt(dbStats.MaxIdleClosed, 10)
-	stats["max_lifetime_closed"] = strconv.FormatInt(dbStats.MaxLifetimeClosed, 10)
+	dbStats := s.db.Stat()
+	stats["open_connections"] = strconv.Itoa(int(dbStats.IdleConns()))
+	stats["total_conns"] = strconv.Itoa(int(dbStats.TotalConns()))
+	stats["in_use"] = strconv.Itoa(int(dbStats.AcquiredConns()))
+	stats["idle"] = strconv.Itoa(int(dbStats.IdleConns()))
+	stats["max_conns"] = strconv.Itoa(int(dbStats.MaxConns()))
+	stats["wait_duration_total"] = strconv.Itoa(int(dbStats.EmptyAcquireWaitTime()))
 
 	// Evaluate stats to provide a health message
-	if dbStats.OpenConnections > 40 { // Assuming 50 is the max for this example
+	if dbStats.TotalConns() > 40 { // Assuming 50 is the max for this example
 		stats["message"] = "The database is experiencing heavy load."
 	}
 
-	if dbStats.WaitCount > 1000 {
-		stats["message"] = "The database has a high number of wait events, indicating potential bottlenecks."
-	}
-
-	if dbStats.MaxIdleClosed > int64(dbStats.OpenConnections)/2 {
+	if dbStats.MaxIdleDestroyCount() > int64(dbStats.IdleConns())/2 {
 		stats["message"] = "Many idle connections are being closed, consider revising the connection pool settings."
 	}
 
-	if dbStats.MaxLifetimeClosed > int64(dbStats.OpenConnections)/2 {
+	if dbStats.MaxLifetimeDestroyCount() > int64(dbStats.IdleConns())/2 {
 		stats["message"] = "Many connections are being closed due to max lifetime, consider increasing max lifetime or revising the connection usage pattern."
 	}
 
@@ -109,7 +111,25 @@ func (s *service) Health() map[string]string {
 // It logs a message indicating the disconnection from the specific database.
 // If the connection is successfully closed, it returns nil.
 // If an error occurs while closing the connection, it returns the error.
-func (s *service) Close() error {
+func (s *service) Close() {
 	log.Printf("Disconnected from database: %s", database)
-	return s.db.Close()
+	s.db.Close()
+}
+
+func (s *service) Queries() *mkdb.Queries {
+	return s.queries
+}
+
+func StringToPgText(v *string) pgtype.Text {
+	if v == nil {
+		return pgtype.Text{
+			String: "",
+			Valid:  false,
+		}
+	}
+
+	return pgtype.Text{
+		String: *v,
+		Valid:  true,
+	}
 }

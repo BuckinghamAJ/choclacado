@@ -33,10 +33,10 @@ type Jwk struct {
 }
 
 type Post struct {
-	ID            int32
-	Title         string
-	Description   string
-	Accountposted string
+	ID            int32  `json:"id"`
+	Title         string `json:"title"`
+	Description   string `json:"description"`
+	Accountposted string `json:"postedBy"`
 	Createdate    pgtype.Timestamptz
 	Updatedate    pgtype.Timestamptz
 	Resource      int32

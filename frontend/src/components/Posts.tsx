@@ -42,3 +42,18 @@ function SinglePost({ post }: PostProps) {
     ></MKCard>
   );
 }
+
+function SinglePostDetail({ post }: PostProps) {
+  // TODO: Add Markdown Rendering, w/ highlight.js
+  // https://chatgpt.com/share/693c746c-9868-8009-8b65-9354672eb332 (discussion)
+  return (
+    <MKCard
+      title={post.Title}
+      description={post.Description}
+      resourceType={post.Resourcetype}
+      url={post.Url}
+      tags={post.Tags}
+      postedByUser={post.Accountposted}
+    ></MKCard>
+  );
+}

@@ -1,5 +1,5 @@
 import React from "react";
-import { Accessor, Setter } from "solid-js";
+import { Accessor, Setter, Show } from "solid-js";
 
 type MKInputProps = {
   label: string;
@@ -24,13 +24,25 @@ export default function MKInput({
       <div class="self-stretch inline-flex justify-start items-start gap-2">
         <div class="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
           <div class="self-stretch pl-3 pr-6 py-2 bg-white rounded-md outline outline-1 outline-slate-300 inline-flex justify-start items-center">
-            <input
-              class="outline-none justify-start text-zinc-900 text-base font-normal font-['Inter'] leading-6 w-full h-full"
-              placeholder={placeholder}
-              type={type}
-              value={inputSignal()}
-              onChange={(e) => inputSignalSetter(e.target.value)}
-            ></input>
+            <Show
+              when={type == "textarea"}
+              fallback={
+                <input
+                  class="outline-none justify-start text-zinc-900 text-base font-normal font-['Inter'] leading-6 w-full h-full"
+                  placeholder={placeholder}
+                  type={type}
+                  value={inputSignal()}
+                  onChange={(e) => inputSignalSetter(e.target.value)}
+                ></input>
+              }
+            >
+              <textarea
+                class="outline-none justify-start text-zinc-900 text-base font-normal font-['Inter'] leading-6 w-full h-full"
+                placeholder={placeholder}
+                value={inputSignal()}
+                onChange={(e) => inputSignalSetter(e.target.value)}
+              ></textarea>
+            </Show>
           </div>
         </div>
       </div>

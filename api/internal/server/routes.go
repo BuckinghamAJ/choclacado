@@ -2,9 +2,9 @@ package server
 
 import (
 	"choclacado/auth"
+	"choclacado/posts"
 	"log/slog"
 	"net/http"
-	"os"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -25,10 +25,12 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	s.App.Get("/", s.HelloWorldHandler)
 
 	s.App.Get("/health", s.healthHandler)
-	s.App.Get("/env", s.envHandler)
 
-	s.App.Get("/api/auth/verify", s.verifyAuthHandler)
-	s.App.Get("/api/me", s.verifyAuthHandler)
+	api := s.App.Group("/api", s.authMiddleware)
+
+	api.Get("/me", s.verifyAuthHandler)
+	api.Get("/posts", s.getAllPostsHandler)
+	api.Post("/posts", s.addNewPost)
 
 }
 
@@ -44,12 +46,18 @@ func (s *FiberServer) healthHandler(c *fiber.Ctx) error {
 	return c.JSON(s.db.Health())
 }
 
-func (s *FiberServer) envHandler(c *fiber.Ctx) error {
-	resp := fiber.Map{
-		"environment Vars": os.Environ(),
+func (s *FiberServer) authMiddleware(c *fiber.Ctx) error {
+	user, err := auth.UserFromRequest(c.Request(), c.Context())
+	if err != nil {
+		slog.Error("failed to get user", slog.Any("error", err))
+
+		return c.Status(http.StatusUnauthorized).JSON(ErrorResponse{
+			Error: "Authentication failed",
+		})
 	}
 
-	return c.JSON(resp)
+	c.Locals("user", user)
+	return c.Next()
 }
 
 type AuthResponse struct {
@@ -63,22 +71,7 @@ type ErrorResponse struct {
 }
 
 func (s *FiberServer) verifyAuthHandler(c *fiber.Ctx) error {
-	user, err := auth.UserFromRequest(c.Request(), c.Context())
-	if err != nil {
-		slog.Error("failed to get user", slog.Any("error", err))
-
-		// Return 401 Unauthorized with appropriate error message
-
-		c.Status(http.StatusUnauthorized)
-
-		errorMessage := "Authentication failed"
-
-		errorResponse := ErrorResponse{
-			Error: errorMessage,
-		}
-
-		return c.JSON(errorResponse)
-	}
+	user := c.Locals("user").(auth.User)
 
 	response := AuthResponse{
 		Status:  "success",
@@ -88,4 +81,12 @@ func (s *FiberServer) verifyAuthHandler(c *fiber.Ctx) error {
 
 	return c.JSON(response)
 
+}
+
+func (s *FiberServer) getAllPostsHandler(c *fiber.Ctx) error {
+	return posts.GetAll(c, s.db.Queries())
+}
+
+func (s *FiberServer) addNewPost(c *fiber.Ctx) error {
+	return posts.Add(c, s.db.Queries())
 }

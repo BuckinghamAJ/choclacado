@@ -1,4 +1,4 @@
-export default function SideBar() {
+export default function Filter() {
   return (
     <div class="w-60 h-170 p-4 bg-white rounded-2xl outline-1 outline-offset-[-1px] outline-black/10 inline-flex flex-col justify-start items-start gap-2">
       <div class="self-stretch py-2.5 inline-flex justify-start items-start gap-2.5">
