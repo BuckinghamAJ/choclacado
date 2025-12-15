@@ -15,11 +15,13 @@ export default function MKInput({
   inputSignal,
   inputSignalSetter,
   type,
-}: MKInputProps) {
+  required = false,
+}: MKInputProps & { required?: boolean }) {
   return (
     <div class="self-stretch flex flex-col justify-start items-start gap-1.5">
       <div class="justify-start text-slate-900 text-sm font-medium font-['Inter'] leading-5">
         {label}
+        {required && <span class="text-red-500 ml-1">*</span>}
       </div>
       <div class="self-stretch inline-flex justify-start items-start gap-2">
         <div class="flex-1 inline-flex flex-col justify-start items-start gap-1.5">
@@ -33,6 +35,7 @@ export default function MKInput({
                   type={type}
                   value={inputSignal()}
                   onChange={(e) => inputSignalSetter(e.target.value)}
+                  required={required}
                 ></input>
               }
             >
@@ -41,6 +44,7 @@ export default function MKInput({
                 placeholder={placeholder}
                 value={inputSignal()}
                 onChange={(e) => inputSignalSetter(e.target.value)}
+                required={required}
               ></textarea>
             </Show>
           </div>

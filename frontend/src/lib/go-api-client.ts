@@ -1,5 +1,7 @@
+import { getRequestEvent } from "solid-js/web";
 import { authClient } from "./auth-client";
 import { decodeJwt } from "jose";
+import { auth } from "./auth";
 
 const GO_API_URL = process.env.GO_API_URL || "http://localhost:8080";
 
@@ -7,6 +9,7 @@ export interface ApiResponse<T = unknown> {
   data?: T;
   error?: string;
   status: number;
+  statusText: string;
 }
 
 export interface UserProfile {
@@ -50,24 +53,19 @@ class GoApiClient {
     }
 
     const token = (await authClient.token().then((x) => x.data?.token)) || null;
-    const test = await authClient.token();
-
-    console.log(`Test: ${test.error?.statusText}`);
 
     this.cachedToken = token;
 
     return token;
   }
 
-  private async request<T = unknown>(
+  async request<T = unknown>(
     endpoint: string,
     options: RequestInit = {},
   ): Promise<ApiResponse<T>> {
     try {
       const token = await this.getToken();
 
-      console.log(`Bearer ${token}`);
-      // Send request
       const response = await fetch(`${this.baseUrl}${endpoint}`, {
         ...options,
         headers: {
@@ -84,24 +82,27 @@ class GoApiClient {
             data.message ||
             `API Error: ${response.status} ${response.statusText}`,
           status: response.status,
+          statusText: response.statusText,
         };
       }
 
       return {
         data,
         status: response.status,
+        statusText: response.statusText,
       };
     } catch (error) {
       return {
         error:
           error instanceof Error ? error.message : "Unknown error occurred",
         status: 0,
+        statusText: "",
       };
     }
   }
 
   async verifyAuth(): Promise<ApiResponse<AuthVerifyResponse>> {
-    return this.request("/api/auth/verify", {
+    return this.request("/api/me", {
       method: "GET",
     });
   }

@@ -1,5 +1,5 @@
 import { createAsync, useLocation } from "@solidjs/router";
-import { Show } from "solid-js";
+import { Show, Suspense } from "solid-js";
 import verifyUser from "~/lib/queries";
 import ShareResource from "./Share";
 import { useSidebar } from "./ui/sidebar";
@@ -56,10 +56,9 @@ export default function Nav() {
             </svg>
           </div>
           <div class="text-center justify-start text-black text-base font-normal font-['Inter'] leading-7">
-            {/* TODO: FIX!*/}
-            <Show when={authUser()!} fallback={<div>Loading...</div>}>
-              {(user) => <div>{user().Name}</div>}
-            </Show>
+            <Suspense fallback={<div>Loading...</div>}>
+              <div>{authUser()?.Name}</div>
+            </Suspense>
           </div>
         </div>
       </div>

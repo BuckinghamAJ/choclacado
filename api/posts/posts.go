@@ -1,6 +1,7 @@
 package posts
 
 import (
+	"choclacado/auth"
 	"choclacado/internal/database"
 	"choclacado/sqlc/mkdb"
 	"log/slog"
@@ -13,10 +14,10 @@ type errorResponse struct {
 }
 
 func handleErrors(message string, err error) errorResponse {
-	slog.Error("Fail to query the posts database", slog.Any("error", err))
+	slog.Error(message, slog.Any("error", err))
 
 	errorResponse := errorResponse{
-		Error: "Fail to query the posts database",
+		Error: message,
 	}
 
 	return errorResponse
@@ -56,6 +57,10 @@ func (cpr *CreatePostReq) convertToQuery() mkdb.CreatePostParams {
 
 func Add(c *fiber.Ctx, queries *mkdb.Queries) error {
 	var postReq = new(CreatePostReq)
+	user := c.Locals("user").(auth.User)
+	postReq.PostedBy = user.ID
+
+	slog.Debug(string(c.Body()))
 
 	if err := c.BodyParser(postReq); err != nil {
 		return c.JSON(handleErrors("Failed to parse Request", err))

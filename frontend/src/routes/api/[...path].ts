@@ -7,9 +7,6 @@ const GO_API_URL = process.env.API_URL || "http://api:7373";
 
 async function handler(event: APIEvent) {
   const path = event.params.path || "";
-  const req_e = getRequestEvent();
-  // console.log("In handler, URL:" + GO_API_URL);
-  // console.log("In handler, path:" + path);
 
   const url = new URL(`/api/${path}`, GO_API_URL);
   new URL(event.request.url).searchParams.forEach((value, key) => {
@@ -25,7 +22,6 @@ async function handler(event: APIEvent) {
     });
 
     rheaders.set("Authorization", `Bearer ${token}`);
-    console.log("Token: " + token);
 
     const response = await fetch(url.toString(), {
       method: event.request.method,

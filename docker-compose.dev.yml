@@ -32,6 +32,9 @@ services:
           path: ./api/internal
           target: /app/internal
         - action: rebuild
+          path: ./api/posts
+          target: /app/posts
+        - action: rebuild
           path: go.mod
         - action: rebuild
           path: go.sum

@@ -12,7 +12,7 @@ CREATE TABLE posts (
     id SERIAL PRIMARY KEY,
     title TEXT NOT NULL,
     description TEXT NOT NULL,
-    accountPosted TEXT NOT NULL REFERENCES account(id),
+    accountPosted TEXT NOT NULL REFERENCES "user"(id),
     createDate TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     updateDate TIMESTAMPTZ NOT NULL DEFAULT NOW(),
     resource INTEGER NOT NULL REFERENCES resource_type(id),
@@ -29,3 +29,7 @@ CREATE TABLE posts_tags (
 CREATE INDEX idx_posts_accountPosted ON posts(accountPosted);
 CREATE INDEX idx_posts_createDate ON posts(createDate);
 CREATE INDEX idx_posts_resource ON posts(resource);
+
+INSERT INTO resource_type (value) VALUES ('Articles');
+INSERT INTO resource_type (value) VALUES ('Code Snippets');
+INSERT INTO resource_type (value) VALUES ('Learning Resources');

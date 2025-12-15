@@ -6,6 +6,7 @@ const BETTER_AUTH_URL = "http://localhost:3000";
 
 const verifyUser = query(async function () {
   "use server";
+
   const event = getRequestEvent();
 
   const reqHeaders = event?.request.headers;
@@ -13,23 +14,23 @@ const verifyUser = query(async function () {
   // console.log(event);
 
   const verifyUrl = new URL("/api/me", BETTER_AUTH_URL);
-  console.log("Sending to: " + verifyUrl.toString());
 
   const rsp = await fetch(verifyUrl.toString(), {
     headers: reqHeaders,
-  })
-    .then((x) => x.json())
-    .then((x) => ({ data: x }))
-    .catch((e) => ({ error: e }));
+  });
 
-  if (rsp.error) {
+  if (!rsp.ok) {
     console.log("Should throw redirect");
-    throw redirect("/login");
+    return { error: "Error verifying user" };
   }
 
-  console.log("Response: " + JSON.stringify(rsp.data));
+  const data = await rsp.json();
 
-  return rsp.data.user;
+  console.log("Response: " + JSON.stringify(data));
+  // console.log("Response User: " + JSON.stringify(rsp.data.user));
+  // console.log("Response Name: " + rsp.data.user.Name);
+
+  return data.user;
 }, "userAuthentication");
 
 export default verifyUser;

@@ -57,6 +57,7 @@ const Button = <T extends ValidComponent = "button">(
       class={cn(
         buttonVariants({ variant: local.variant, size: local.size }),
         local.class,
+        "hover:cursor-pointer",
       )}
       {...others}
     />
