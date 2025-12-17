@@ -1,5 +1,13 @@
-import { A, createAsync, query, redirect, useNavigate } from "@solidjs/router";
-import { createEffect, createSignal } from "solid-js";
+import {
+  A,
+  createAsync,
+  createAsyncStore,
+  query,
+  redirect,
+  revalidate,
+  useNavigate,
+} from "@solidjs/router";
+import { createContext, createEffect, createSignal, Suspense } from "solid-js";
 import Posts, { Post } from "~/components/Posts";
 
 import Filter from "~/components/Filter";
@@ -9,9 +17,11 @@ import { ShareSideBar } from "~/components/Share";
 import Nav from "~/components/Nav";
 import { getRequestEvent } from "solid-js/web";
 import { auth } from "~/lib/auth";
+import { createStore } from "solid-js/store";
+import { PostContext } from "~/components/context/create";
 
 const GET_ALL_POSTS = "/api/posts";
-const GO_API_URL = process.env.GO_API_URL || "http://api:7373";
+const GO_API_URL = process.env.API_URL || "http://api:7373";
 
 const getAllPosts = query(async () => {
   "use server";
@@ -37,51 +47,67 @@ const getAllPosts = query(async () => {
   }
 
   const data = await rsp.json();
+  console.log("Data: " + JSON.stringify(data));
 
   return data;
 }, "getAllPosts");
 
 export default function Home() {
   const authUser = createAsync(() => verifyUser());
-  const posts = createAsync(() => getAllPosts());
+  const [key, setKey] = createSignal(0);
+
+  const posts = createAsync(() => {
+    key(); // Need posts to be reactive to a change
+    return getAllPosts();
+  });
+
+  const refetchPosts = () => {
+    revalidate(getAllPosts.key);
+    setKey((k) => k + 1);
+  };
 
   const [search, setSearch] = createSignal("");
   const navigate = useNavigate();
   createEffect(() => {
-    if ("error" in authUser()) {
+    const user = authUser();
+    if (user !== undefined && "error" in user) {
       navigate("/login");
     }
   });
 
-  // TODO: Place Value to fetch posts
-
   return (
     <>
-      <Nav />
-      <div class="flex">
-        <main class="w-full bg-white h-lvh mx-auto text-gray-700 p-4 relative bg-neutral-50 overflow-hidden">
-          <div class="w-full self-stretch px-12 inline-flex justify-start items-start gap-2.5">
-            <div class="flex-1 inline-flex flex-col justify-start items-start gap-2.5">
-              <div class="self-stretch h-9 justify-start text-slate-900 text-3xl font-semibold font-['Inter'] leading-9">
-                Discover Resources
+      <Nav user={authUser()?.Name} />
+      <PostContext.Provider value={{ posts, refetchPosts }}>
+        <div class="flex">
+          <main class="w-full bg-white h-lvh mx-auto text-gray-700 p-4 relative bg-neutral-50 overflow-hidden">
+            <div class="w-full self-stretch px-12 inline-flex justify-start items-start gap-2.5">
+              <div class="flex-1 inline-flex flex-col justify-start items-start w-full gap-2.5">
+                <div class="self-stretch h-9 justify-start text-slate-900 text-3xl font-semibold font-['Inter'] leading-9">
+                  Discover Resources
+                </div>
+                <div class="self-stretch h-9 justify-start text-slate-900 text-xl font-normal font-['Inter'] leading-7">
+                  Explore shared knowledge from our community
+                </div>
+                <MKInput
+                  label=""
+                  placeholder="Search resources..."
+                  inputSignal={search}
+                  inputSignalSetter={setSearch}
+                  type="text"
+                ></MKInput>
+                <div class="flex-row w-full flex">
+                  <Filter />
+                  <Suspense fallback={"Loading..."}>
+                    <Posts posts={posts()} />
+                  </Suspense>
+                </div>
               </div>
-              <div class="self-stretch h-9 justify-start text-slate-900 text-xl font-normal font-['Inter'] leading-7">
-                Explore shared knowledge from our community
-              </div>
-              <MKInput
-                label=""
-                placeholder="Search resources..."
-                inputSignal={search}
-                inputSignalSetter={setSearch}
-                type="text"
-              ></MKInput>
-              <Filter />
-              <Posts posts={posts()} />
             </div>
-          </div>
-        </main>
-        <ShareSideBar></ShareSideBar>
-      </div>
+          </main>
+          <ShareSideBar></ShareSideBar>
+        </div>
+      </PostContext.Provider>
     </>
   );
 }

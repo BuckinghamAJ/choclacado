@@ -1,6 +1,8 @@
 import { For, Match, Show, Switch } from "solid-js";
-import MKIcon from "./icons";
+import MKIcon, { ExternalLinkIcon, AvatarIcon } from "./icons";
 import { Badge } from "./badge";
+import { Card, CardContent, CardFooter, CardHeader, CardTitle } from "./card";
+import { Separator } from "./separator";
 
 type MKCardProps = {
   title: string;
@@ -20,63 +22,63 @@ export default function MKCard({
   tags,
 }: MKCardProps) {
   return (
-    <div class="self-stretch pt-2.5 inline-flex justify-start items-start gap-2.5">
-      <div class="flex-1 inline-flex flex-col justify-start items-start gap-2.5">
-        <div class="self-stretch inline-flex justify-between items-center">
-          <div class="h-7 p-2 bg-white rounded-[50px] outline-1 outline-offset-[-1px] outline-black/20 flex justify-center items-center gap-2">
-            <div class="w-5 h-5 relative overflow-hidden">
-              <div class="w-4 h-4 left-[1.67px] top-[1.67px] absolute outline-2 outline-offset-[-1px] outline-black"></div>
-            </div>
-            <Badge variant="outline">
-              <MKIcon resource={resourceType} />
-              <Switch>
-                <Match when={resourceType == "Articles"}>Article</Match>
-                <Match when={resourceType == "Code Snippets"}>
-                  Code Snippet
-                </Match>
-                <Match when={resourceType == "Learning Resources"}>
-                  Course
-                </Match>
-              </Switch>
-            </Badge>
-          </div>
-          <div class="flex justify-start items-center gap-2.5">
-            <div class="w-6 h-6 relative overflow-hidden">
-              <div class="w-5 h-5 left-[2px] top-[2px] absolute outline-2 outline-offset-[-1px] outline-black"></div>
-            </div>
-            <div class="w-6 h-6 relative overflow-hidden">
-              <div class="w-4 h-5 left-[3px] top-[2px] absolute outline-2 outline-offset-[-1px] outline-black"></div>
-            </div>
-          </div>
-        </div>
-        <div class="justify-start text-slate-900 text-lg font-semibold font-['Inter'] leading-7">
+    <Card class="flex-1 inline-flex flex-col justify-star p-2.5 items-start gap-2.5 w-[26vw]">
+      <CardHeader class="self-stretch inline-flex items-start justify-start px-6 pt-6 pb-2">
+        <Badge variant="outline" class="rounded-xl">
+          <MKIcon resource={resourceType} />
+          <Switch>
+            <Match when={resourceType == "Articles"}>
+              <span class="ml-1">Article</span>
+            </Match>
+            <Match when={resourceType == "Code Snippets"}>
+              <span class="ml-1">Code Snippet </span>
+            </Match>
+            <Match when={resourceType == "Learning Resources"}>
+              <span class="ml-1"> Course</span>
+            </Match>
+          </Switch>
+        </Badge>
+        <CardTitle class="justify-start text-slate-900 text-lg font-['Inter'] leading-7 font-bold!">
           {title}
+        </CardTitle>
+      </CardHeader>
+
+      <CardContent class="self-stretch flex flex-col justify-start items-start gap-2.5">
+        <div class="self-stretch justify-start text-slate-900 text-base font-normal font-['Inter'] leading-7">
+          {description}
         </div>
-        <div class="self-stretch flex flex-col justify-start items-start gap-2.5">
-          <div class="self-stretch justify-start text-slate-900 text-base font-normal font-['Inter'] leading-7">
-            {description}
-          </div>
-          <div class="inline-flex justify-start items-center gap-2">
-            <div class="w-5 h-5 relative overflow-hidden">
-              <div class="w-3.5 h-3.5 left-[2.50px] top-[2.50px] absolute outline outline-2 outline-offset-[-1px] outline-black"></div>
+        <div class="justify-start text-slate-900 text-base font-bold font-['Inter'] underline leading-7 ">
+          <Show when={url !== null}>
+            <a
+              target="_blank"
+              rel="noopener noreferrer"
+              href={url!}
+              class="inline-flex gap-1 align-middle items-center leading-7"
+            >
+              <ExternalLinkIcon />
+              View article
+            </a>
+          </Show>
+          <Show when={tags != null && tags.length > 0 && tags[0] != null}>
+            <div class="inline-flex justify-start items-start gap-2.5">
+              <For each={tags}>
+                {(tag) => (
+                  <Badge variant="outline" class="rounded-lg">
+                    {tag}
+                  </Badge>
+                )}
+              </For>
             </div>
-            <div class="justify-start text-slate-900 text-base font-bold font-['Inter'] underline leading-7">
-              <Show when={url !== null} fallback={<p>by {postedByUser}</p>}>
-                <a target="_blank" rel="noopener noreferrer" href={url!}>
-                  View article
-                </a>
-              </Show>
-            </div>
-          </div>
+          </Show>
         </div>
-        <div class="self-stretch pt-1 pb-2 flex flex-col justify-start items-start gap-2.5">
-          <div class="inline-flex justify-start items-start gap-2.5">
-            <For each={tags}>
-              {(tag) => <Badge variant="outline">{tag}</Badge>}
-            </For>
-          </div>
-        </div>
-      </div>
-    </div>
+      </CardContent>
+      <Separator />
+      <CardFooter class="self-stretch pt-1 pb-2 justify-start items-start gap-2.5 inline-flex ">
+        <AvatarIcon />
+        <p class="text-center justify-start text-black  font-normal font-['Inter'] leading-7 text-lg">
+          {postedByUser}
+        </p>
+      </CardFooter>
+    </Card>
   );
 }

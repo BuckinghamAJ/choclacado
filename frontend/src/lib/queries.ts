@@ -4,6 +4,7 @@ import { getRequestEvent } from "solid-js/web";
 
 const BETTER_AUTH_URL = "http://localhost:3000";
 
+// TODO: Define types!
 const verifyUser = query(async function () {
   "use server";
 

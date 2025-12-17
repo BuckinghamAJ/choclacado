@@ -9,10 +9,10 @@ export type Post = {
   ID: number;
   Title: string;
   Description: string;
-  Accountposted: string;
+  PostedBy: string;
   Createdate: string; // Timestamptz → ISO timestamp string
   Updatedate: string; // Timestamptz → ISO timestamp string
-  Resourcetype: string;
+  ResourceType: string;
   Url: string | null; // pgtype.Text
   Content: string | null; // pgtype.Text
   Tags: Array<string> | null;
@@ -20,7 +20,8 @@ export type Post = {
 
 export default function Posts({ posts }: PostsProp) {
   return (
-    <div class="self-stretch inline-flex flex-col justify-start items-start gap-4">
+    // TODO: Sort out the cards columns ADD GRID!
+    <div class="w-full self-stretch inline-flex justify-start items-start gap-4 overflow-hidden">
       <For each={posts}>{(post) => <SinglePost post={post} />}</For>
     </div>
   );
@@ -31,15 +32,18 @@ type PostProps = {
 };
 
 function SinglePost({ post }: PostProps) {
+  // TODO: Update MKCard to utilize the card.tsx
   return (
-    <MKCard
-      title={post.Title}
-      description={post.Description}
-      resourceType={post.Resourcetype}
-      url={post.Url}
-      tags={post.Tags}
-      postedByUser={post.Accountposted}
-    ></MKCard>
+    <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
+      <MKCard
+        title={post.Title}
+        description={post.Description}
+        resourceType={post.ResourceType}
+        url={post.Url}
+        tags={post.Tags}
+        postedByUser={post.PostedBy}
+      ></MKCard>
+    </div>
   );
 }
 
@@ -50,7 +54,7 @@ function SinglePostDetail({ post }: PostProps) {
     <MKCard
       title={post.Title}
       description={post.Description}
-      resourceType={post.Resourcetype}
+      resourceType={post.ResourceType}
       url={post.Url}
       tags={post.Tags}
       postedByUser={post.Accountposted}

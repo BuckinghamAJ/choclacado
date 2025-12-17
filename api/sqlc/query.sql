@@ -20,11 +20,13 @@ WHERE p.id = $1
 GROUP BY p.id;
 
 -- name: GetAllPosts :many
-SELECT p.*, array_agg(t.value) as tags, rt.value as resourceType
+SELECT p.*, array_agg(t.value) as tags, rt.value as resource_type, u.name as posted_by
 FROM posts p
 LEFT JOIN posts_tags pt ON p.id = pt.post_id
 LEFT JOIN tags t ON pt.tag_id = t.id
 LEFT JOIN resource_type rt ON rt.id = p.resource
+LEFT JOIN "user" u ON u.id = p.accountposted
+GROUP BY p.id, rt.value, u.name
 ORDER BY p.createDate DESC;
 
 -- name: ListPosts :many
@@ -72,6 +74,14 @@ WHERE id = $1;
 INSERT INTO tags (value)
 VALUES ($1)
 RETURNING *;
+
+-- name: CreateTags :copyfrom
+INSERT INTO tags (value)
+VALUES ($1);
+
+-- name: ListTagsByValue :many
+SELECT * FROM tags
+WHERE value = ANY($1::text[]);
 
 -- name: GetTagByValue :one
 SELECT * FROM tags

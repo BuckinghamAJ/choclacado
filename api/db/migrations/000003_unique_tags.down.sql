@@ -1,0 +1,1 @@
+ALTER TABLE tags DROP CONSTRAINT IF EXISTS unique_tag_value;

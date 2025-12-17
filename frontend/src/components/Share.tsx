@@ -1,4 +1,4 @@
-import { Accessor, Setter } from "solid-js";
+import { Accessor, Setter, useContext } from "solid-js";
 import MKInput from "./ui/mk-input";
 import {
   Sidebar,
@@ -27,6 +27,7 @@ import { getCookie } from "vinxi/http";
 import authClient from "~/lib/auth-client";
 import { auth } from "~/lib/auth";
 import { showToast } from "./ui/toast";
+import { PostContext } from "./context/create";
 
 export default function ShareResource() {
   const { setOpenMobile, setOpen, isMobile, toggleSidebar } = useSidebar();
@@ -124,11 +125,12 @@ function getResourceId(key: string): number {
 export function ShareSideBar() {
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
-  const [tags, setTags] = createSignal(""); // TODO: Figure out how to go about this
+  const [tags, setTags] = createSignal([]); // TODO: Figure out how to go about this
   const [url, setUrl] = createSignal("");
   const [resource, setResource] = createSignal("");
 
-  // TODO add the post url
+  const { posts, refetchPosts } = useContext(PostContext);
+
   const sendNewPostAction = useAction(submitNewPost);
   const sendNewPostSubmission = useSubmission(submitNewPost);
 
@@ -209,7 +211,7 @@ export function ShareSideBar() {
             <MKInput
               label="Tags"
               placeholder="Add tags"
-              type="text"
+              type="tags"
               inputSignal={tags}
               inputSignalSetter={setTags}
             ></MKInput>
@@ -237,14 +239,15 @@ export function ShareSideBar() {
             <Button
               variant="default"
               class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
-              onClick={() =>
+              onClick={() => {
                 sendNewPostAction(
                   title(),
                   description(),
                   url(),
                   getResourceId(resource()),
-                )
-              }
+                );
+                refetchPosts();
+              }}
             >
               Share
             </Button>

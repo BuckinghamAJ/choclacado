@@ -82,7 +82,7 @@ services:
     ports:
       - "${CHOCLACADO_DB_PORT}:5432"
     volumes:
-      - psql_volume_c:/var/lib/postgresql/data
+      - psql_volume_c:/var/lib/postgresql
     healthcheck:
       test:
         [

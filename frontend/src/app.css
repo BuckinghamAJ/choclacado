@@ -1,5 +1,5 @@
 @import "tailwindcss";
-@import "@fontsource/inter";
+@import "@fontsource-variable/inter";
 
 @theme {
     --color-primary: hsl(var(--primary));
@@ -86,6 +86,7 @@
 body {
     background: rgb(var(--background-rgb));
     color: rgb(var(--foreground-rgb));
+    font-family: "Inter Variable", sans-serif;
 }
 
 @keyframes accordion-down {

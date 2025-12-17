@@ -15,7 +15,7 @@ CREATE TABLE resource_type (
 
 CREATE TABLE tags (
     id SERIAL PRIMARY KEY,
-    value TEXT NOT NULL
+    value TEXT NOT NULL UNIQUE
 );
 
 CREATE TABLE posts (

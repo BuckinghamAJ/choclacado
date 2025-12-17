@@ -106,11 +106,13 @@ func (q *Queries) DeletePost(ctx context.Context, id int32) error {
 }
 
 const getAllPosts = `-- name: GetAllPosts :many
-SELECT p.id, p.title, p.description, p.accountposted, p.createdate, p.updatedate, p.resource, p.url, p.content, array_agg(t.value) as tags, rt.value as resourceType
+SELECT p.id, p.title, p.description, p.accountposted, p.createdate, p.updatedate, p.resource, p.url, p.content, array_agg(t.value) as tags, rt.value as resource_type, u.name as posted_by
 FROM posts p
 LEFT JOIN posts_tags pt ON p.id = pt.post_id
 LEFT JOIN tags t ON pt.tag_id = t.id
 LEFT JOIN resource_type rt ON rt.id = p.resource
+LEFT JOIN "user" u ON u.id = p.accountposted
+GROUP BY p.id, rt.value, u.name
 ORDER BY p.createDate DESC
 `
 
@@ -125,7 +127,8 @@ type GetAllPostsRow struct {
 	Url           pgtype.Text
 	Content       pgtype.Text
 	Tags          interface{}
-	Resourcetype  pgtype.Text
+	ResourceType  pgtype.Text
+	PostedBy      pgtype.Text
 }
 
 func (q *Queries) GetAllPosts(ctx context.Context) ([]GetAllPostsRow, error) {
@@ -148,7 +151,8 @@ func (q *Queries) GetAllPosts(ctx context.Context) ([]GetAllPostsRow, error) {
 			&i.Url,
 			&i.Content,
 			&i.Tags,
-			&i.Resourcetype,
+			&i.ResourceType,
+			&i.PostedBy,
 		); err != nil {
 			return nil, err
 		}
@@ -558,6 +562,31 @@ func (q *Queries) ListResourceTypes(ctx context.Context) ([]ResourceType, error)
 	var items []ResourceType
 	for rows.Next() {
 		var i ResourceType
+		if err := rows.Scan(&i.ID, &i.Value); err != nil {
+			return nil, err
+		}
+		items = append(items, i)
+	}
+	if err := rows.Err(); err != nil {
+		return nil, err
+	}
+	return items, nil
+}
+
+const listTagsByValue = `-- name: ListTagsByValue :many
+SELECT id, value FROM tags
+WHERE value = ANY($1::text[])
+`
+
+func (q *Queries) ListTagsByValue(ctx context.Context, dollar_1 []string) ([]Tag, error) {
+	rows, err := q.db.Query(ctx, listTagsByValue, dollar_1)
+	if err != nil {
+		return nil, err
+	}
+	defer rows.Close()
+	var items []Tag
+	for rows.Next() {
+		var i Tag
 		if err := rows.Scan(&i.ID, &i.Value); err != nil {
 			return nil, err
 		}

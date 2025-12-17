@@ -23,7 +23,7 @@ docker-run:
 
 # Docker Run for development
 docker-dev:
-	@if docker compose -f docker-compose.dev.yml watch 2>/dev/null; then \
+	@if docker compose -f docker-compose.dev.yml watch; then \
 		: ; \
 	else \
 		echo "Falling back to Docker Compose V1 (no watch support)"; \
