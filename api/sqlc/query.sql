@@ -10,14 +10,15 @@ RETURNING *;
 SELECT * FROM posts
 WHERE id = $1 LIMIT 1;
 
--- name: GetSinglePost :many
-SELECT p.*, array_agg(t.value) as tags, rt.value as resourceType
+-- name: GetSinglePost :one
+SELECT p.*, array_agg(t.value) as tags, rt.value as resource_type, u.name as posted_by
 FROM posts p
 LEFT JOIN posts_tags pt ON p.id = pt.post_id
 LEFT JOIN tags t ON pt.tag_id = t.id
 LEFT JOIN resource_type rt ON rt.id = p.resource
+LEFT JOIN "user" u ON u.id = p.accountposted
 WHERE p.id = $1
-GROUP BY p.id;
+GROUP BY p.id, rt.value, u.name;
 
 -- name: GetAllPosts :many
 SELECT p.*, array_agg(t.value) as tags, rt.value as resource_type, u.name as posted_by

@@ -5,6 +5,7 @@ import (
 	"choclacado/posts"
 	"log/slog"
 	"net/http"
+	"strconv"
 
 	"github.com/gofiber/fiber/v2"
 	"github.com/gofiber/fiber/v2/middleware/cors"
@@ -31,6 +32,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	api.Get("/me", s.verifyAuthHandler)
 	api.Get("/posts", s.getAllPostsHandler)
 	api.Post("/posts", s.addNewPost)
+	api.Delete("/posts/:id", s.deletePost)
 
 }
 
@@ -89,4 +91,16 @@ func (s *FiberServer) getAllPostsHandler(c *fiber.Ctx) error {
 
 func (s *FiberServer) addNewPost(c *fiber.Ctx) error {
 	return posts.Add(c, s.db.Queries())
+}
+
+func (s *FiberServer) deletePost(c *fiber.Ctx) error {
+	postIdStr := c.Params("id")
+	postIdInt, err := strconv.ParseInt(postIdStr, 10, 32)
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(ErrorResponse{
+			Error: "Invalid post ID",
+		})
+	}
+	postId := int32(postIdInt)
+	return posts.Delete(c, s.db.Queries(), postId)
 }

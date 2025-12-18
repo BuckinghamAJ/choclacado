@@ -9,7 +9,7 @@ import {
   SidebarTrigger,
   useSidebar,
 } from "./ui/sidebar";
-import { createSignal } from "solid-js";
+import { createSignal, createEffect } from "solid-js";
 import { Button } from "./ui/button";
 import { CloseIcon } from "./ui/icons";
 import { Flex } from "./ui/flex";
@@ -46,7 +46,7 @@ export default function ShareResource() {
     // Should I make an effect that will update the posts after sharing the resource?
     <div class="w-48 px-4 py-2 bg-slate-900 rounded-md flex justify-center items-center gap-2.5 hover:cursor-pointer hover:bg-slate-800">
       <button
-        class="justify-start text-white text-sm font-medium font-['Inter'] leading-6 hover:cursor-pointer"
+        class="w-full justify-start text-white text-sm font-medium font-['Inter'] leading-6 hover:cursor-pointer"
         onClick={handleShareClick}
       >
         Share Resource
@@ -129,12 +129,26 @@ export function ShareSideBar() {
   const [url, setUrl] = createSignal("");
   const [resource, setResource] = createSignal("");
 
-  const { posts, refetchPosts } = useContext(PostContext);
+  const { posts, mutatePosts } = useContext(PostContext);
+
+  const [sentSubmission, setSentSubmission] = createSignal(false);
 
   const sendNewPostAction = useAction(submitNewPost);
-  const sendNewPostSubmission = useSubmission(submitNewPost);
+  const newPostSubmission = useSubmission(submitNewPost);
 
   const { toggleSidebar } = useSidebar();
+
+  createEffect(() => {
+    if (
+      sentSubmission() &&
+      !newPostSubmission.error &&
+      newPostSubmission.result
+    ) {
+      console.log("Mutate Called", newPostSubmission.result);
+      mutatePosts(newPostSubmission.result);
+      setSentSubmission(false);
+    }
+  });
 
   return (
     <>
@@ -239,14 +253,14 @@ export function ShareSideBar() {
             <Button
               variant="default"
               class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
-              onClick={() => {
-                sendNewPostAction(
+              onClick={async () => {
+                setSentSubmission(true);
+                await sendNewPostAction(
                   title(),
                   description(),
                   url(),
                   getResourceId(resource()),
                 );
-                refetchPosts();
               }}
             >
               Share

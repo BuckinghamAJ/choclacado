@@ -7,7 +7,14 @@ import {
   revalidate,
   useNavigate,
 } from "@solidjs/router";
-import { createContext, createEffect, createSignal, Suspense } from "solid-js";
+import {
+  createContext,
+  createEffect,
+  createMemo,
+  createResource,
+  createSignal,
+  Suspense,
+} from "solid-js";
 import Posts, { Post } from "~/components/Posts";
 
 import Filter from "~/components/Filter";
@@ -17,9 +24,8 @@ import { ShareSideBar } from "~/components/Share";
 import Nav from "~/components/Nav";
 import { getRequestEvent } from "solid-js/web";
 import { auth } from "~/lib/auth";
-import { createStore } from "solid-js/store";
-import { PostContext } from "~/components/context/create";
-
+import { PostContext, UserContext } from "~/components/context/create";
+import Main from "~/components/Main";
 const GET_ALL_POSTS = "/api/posts";
 const GO_API_URL = process.env.API_URL || "http://api:7373";
 
@@ -54,17 +60,17 @@ const getAllPosts = query(async () => {
 
 export default function Home() {
   const authUser = createAsync(() => verifyUser());
-  const [key, setKey] = createSignal(0);
 
-  const posts = createAsync(() => {
-    key(); // Need posts to be reactive to a change
-    return getAllPosts();
-  });
+  const [posts, { mutate, refetch }] = createResource(() => getAllPosts());
 
-  const refetchPosts = () => {
-    revalidate(getAllPosts.key);
-    setKey((k) => k + 1);
+  const [openDialog, setOpenDialog] = createSignal(false);
+
+  const mutatePosts = (newPost) => {
+    mutate((posts) => [newPost, ...posts]);
   };
+
+  const postById = (postId: number) =>
+    createMemo(() => posts()?.find((post: Post) => post.ID === postId));
 
   const [search, setSearch] = createSignal("");
   const navigate = useNavigate();
@@ -78,35 +84,10 @@ export default function Home() {
   return (
     <>
       <Nav user={authUser()?.Name} />
-      <PostContext.Provider value={{ posts, refetchPosts }}>
-        <div class="flex">
-          <main class="w-full bg-white h-lvh mx-auto text-gray-700 p-4 relative bg-neutral-50 overflow-hidden">
-            <div class="w-full self-stretch px-12 inline-flex justify-start items-start gap-2.5">
-              <div class="flex-1 inline-flex flex-col justify-start items-start w-full gap-2.5">
-                <div class="self-stretch h-9 justify-start text-slate-900 text-3xl font-semibold font-['Inter'] leading-9">
-                  Discover Resources
-                </div>
-                <div class="self-stretch h-9 justify-start text-slate-900 text-xl font-normal font-['Inter'] leading-7">
-                  Explore shared knowledge from our community
-                </div>
-                <MKInput
-                  label=""
-                  placeholder="Search resources..."
-                  inputSignal={search}
-                  inputSignalSetter={setSearch}
-                  type="text"
-                ></MKInput>
-                <div class="flex-row w-full flex">
-                  <Filter />
-                  <Suspense fallback={"Loading..."}>
-                    <Posts posts={posts()} />
-                  </Suspense>
-                </div>
-              </div>
-            </div>
-          </main>
-          <ShareSideBar></ShareSideBar>
-        </div>
+      <PostContext.Provider value={{ posts, mutatePosts, refetch, postById }}>
+        <UserContext.Provider value={authUser()?.ID}>
+          <Main />
+        </UserContext.Provider>
       </PostContext.Provider>
     </>
   );

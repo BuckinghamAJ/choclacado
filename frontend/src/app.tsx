@@ -12,7 +12,7 @@ export default function App() {
     <Router
       root={(props) => (
         <>
-          <SidebarProvider class="inline">
+          <SidebarProvider class="inline" defaultOpen={false}>
             <Suspense>{props.children}</Suspense>
             <Toaster />
           </SidebarProvider>

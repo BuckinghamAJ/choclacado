@@ -238,14 +238,15 @@ func (q *Queries) GetResourceType(ctx context.Context, id int32) (ResourceType, 
 	return i, err
 }
 
-const getSinglePost = `-- name: GetSinglePost :many
-SELECT p.id, p.title, p.description, p.accountposted, p.createdate, p.updatedate, p.resource, p.url, p.content, array_agg(t.value) as tags, rt.value as resourceType
+const getSinglePost = `-- name: GetSinglePost :one
+SELECT p.id, p.title, p.description, p.accountposted, p.createdate, p.updatedate, p.resource, p.url, p.content, array_agg(t.value) as tags, rt.value as resource_type, u.name as posted_by
 FROM posts p
 LEFT JOIN posts_tags pt ON p.id = pt.post_id
 LEFT JOIN tags t ON pt.tag_id = t.id
 LEFT JOIN resource_type rt ON rt.id = p.resource
+LEFT JOIN "user" u ON u.id = p.accountposted
 WHERE p.id = $1
-GROUP BY p.id
+GROUP BY p.id, rt.value, u.name
 `
 
 type GetSinglePostRow struct {
@@ -259,39 +260,28 @@ type GetSinglePostRow struct {
 	Url           pgtype.Text
 	Content       pgtype.Text
 	Tags          interface{}
-	Resourcetype  pgtype.Text
+	ResourceType  pgtype.Text
+	PostedBy      pgtype.Text
 }
 
-func (q *Queries) GetSinglePost(ctx context.Context, id int32) ([]GetSinglePostRow, error) {
-	rows, err := q.db.Query(ctx, getSinglePost, id)
-	if err != nil {
-		return nil, err
-	}
-	defer rows.Close()
-	var items []GetSinglePostRow
-	for rows.Next() {
-		var i GetSinglePostRow
-		if err := rows.Scan(
-			&i.ID,
-			&i.Title,
-			&i.Description,
-			&i.Accountposted,
-			&i.Createdate,
-			&i.Updatedate,
-			&i.Resource,
-			&i.Url,
-			&i.Content,
-			&i.Tags,
-			&i.Resourcetype,
-		); err != nil {
-			return nil, err
-		}
-		items = append(items, i)
-	}
-	if err := rows.Err(); err != nil {
-		return nil, err
-	}
-	return items, nil
+func (q *Queries) GetSinglePost(ctx context.Context, id int32) (GetSinglePostRow, error) {
+	row := q.db.QueryRow(ctx, getSinglePost, id)
+	var i GetSinglePostRow
+	err := row.Scan(
+		&i.ID,
+		&i.Title,
+		&i.Description,
+		&i.Accountposted,
+		&i.Createdate,
+		&i.Updatedate,
+		&i.Resource,
+		&i.Url,
+		&i.Content,
+		&i.Tags,
+		&i.ResourceType,
+		&i.PostedBy,
+	)
+	return i, err
 }
 
 const getTagByValue = `-- name: GetTagByValue :one

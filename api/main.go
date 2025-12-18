@@ -5,6 +5,7 @@ import (
 	"context"
 	"fmt"
 	"log"
+	"log/slog"
 	"os"
 	"os/signal"
 	"strconv"
@@ -39,7 +40,20 @@ func gracefulShutdown(fiberServer *server.FiberServer, done chan bool) {
 	done <- true
 }
 
+func setLogger() {
+	handlerOptions := &slog.HandlerOptions{
+		Level: slog.LevelDebug,
+	}
+
+	handler := slog.NewTextHandler(os.Stdout, handlerOptions)
+
+	logger := slog.New(handler)
+
+	slog.SetDefault(logger)
+}
+
 func main() {
+	setLogger()
 
 	server := server.New()
 

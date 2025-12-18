@@ -60,16 +60,21 @@ func Add(c *fiber.Ctx, queries *mkdb.Queries) error {
 		return c.JSON(errRsp.HandleErrors("Fail to add new post to db", err))
 	}
 
-	return c.JSON(newPost)
+	returningPost, err := queries.GetSinglePost(c.Context(), newPost.ID)
+	slog.Debug("Get Single Post", slog.Any("returningPost", returningPost))
+	if err != nil {
+		return c.JSON(errRsp.HandleErrors("Fail to grab new post info", err))
+	}
+
+	return c.JSON(returningPost)
 
 }
 
 type DeletePostReq struct {
-	ID   int32  `json:"id"`
 	User string `json:"user"`
 }
 
-func Delete(c *fiber.Ctx, queries *mkdb.Queries) error {
+func Delete(c *fiber.Ctx, queries *mkdb.Queries, id int32) error {
 	var deletePostReq = new(DeletePostReq)
 	user := c.Locals("user").(auth.User)
 
@@ -78,10 +83,10 @@ func Delete(c *fiber.Ctx, queries *mkdb.Queries) error {
 	}
 
 	if user.ID != deletePostReq.User {
-		return c.JSON(errRsp.HandleErrors("UnAuthorized Delete Request", fmt.Errorf("%s not allowed to delete post %d", user.ID, deletePostReq.ID)))
+		return c.JSON(errRsp.HandleErrors("UnAuthorized Delete Request", fmt.Errorf("%s not allowed to delete post %d", user.ID, id)))
 	}
 
-	err := queries.DeletePost(c.Context(), deletePostReq.ID)
+	err := queries.DeletePost(c.Context(), id)
 	if err != nil {
 		return c.JSON(errRsp.HandleErrors("Error Deleting Post", err))
 	}
@@ -89,7 +94,7 @@ func Delete(c *fiber.Ctx, queries *mkdb.Queries) error {
 	return c.JSON(fiber.Map{
 		"success": true,
 		"message": "Post deleted successfully",
-		"id":      deletePostReq.ID,
+		"id":      id,
 	})
 
 }

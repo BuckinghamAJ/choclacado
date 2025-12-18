@@ -87,6 +87,7 @@ body {
     background: rgb(var(--background-rgb));
     color: rgb(var(--foreground-rgb));
     font-family: "Inter Variable", sans-serif;
+    overflow-x: hidden;
 }
 
 @keyframes accordion-down {

@@ -1,8 +1,10 @@
-import { createSignal, For } from "solid-js";
+import { createSignal, For, Resource } from "solid-js";
 import MKCard from "./ui/mk-card";
+import { Grid } from "./ui/grid";
 
 type PostsProp = {
-  posts: Array<Post>;
+  posts: Resource<any>;
+  currentUserID: string;
 };
 
 export type Post = {
@@ -16,32 +18,47 @@ export type Post = {
   Url: string | null; // pgtype.Text
   Content: string | null; // pgtype.Text
   Tags: Array<string> | null;
+  Accountposted: string;
 };
 
-export default function Posts({ posts }: PostsProp) {
+export default function Posts({ posts, currentUserID }: PostsProp) {
   return (
     // TODO: Sort out the cards columns ADD GRID!
-    <div class="w-full self-stretch inline-flex justify-start items-start gap-4 overflow-hidden">
-      <For each={posts}>{(post) => <SinglePost post={post} />}</For>
-    </div>
+    <Grid
+      cols={1}
+      colsMd={2}
+      colsLg={3}
+      class="w-full justify-start items-start gap-4 overflow-y-visible"
+    >
+      <For each={posts()}>
+        {(post) => (
+          <SinglePost
+            post={post}
+            ownPost={currentUserID == post.Accountposted}
+          />
+        )}
+      </For>
+    </Grid>
   );
 }
 
 type PostProps = {
   post: Post;
+  ownPost: boolean;
 };
 
-function SinglePost({ post }: PostProps) {
-  // TODO: Update MKCard to utilize the card.tsx
+function SinglePost({ post, ownPost }: PostProps) {
   return (
     <div class="rounded-lg border bg-card text-card-foreground shadow-sm">
       <MKCard
+        id={post.ID}
         title={post.Title}
         description={post.Description}
         resourceType={post.ResourceType}
         url={post.Url}
         tags={post.Tags}
         postedByUser={post.PostedBy}
+        showEditDelete={ownPost}
       ></MKCard>
     </div>
   );
@@ -57,7 +74,8 @@ function SinglePostDetail({ post }: PostProps) {
       resourceType={post.ResourceType}
       url={post.Url}
       tags={post.Tags}
-      postedByUser={post.Accountposted}
+      postedByUser={post.PostedBy}
+      showEditDelete={false}
     ></MKCard>
   );
 }
