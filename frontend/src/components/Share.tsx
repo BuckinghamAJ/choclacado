@@ -1,4 +1,4 @@
-import { Accessor, Setter, useContext } from "solid-js";
+import { Accessor, Setter, Show, useContext } from "solid-js";
 import MKInput from "./ui/mk-input";
 import {
   Sidebar,
@@ -28,6 +28,7 @@ import authClient from "~/lib/auth-client";
 import { auth } from "~/lib/auth";
 import { showToast } from "./ui/toast";
 import { PostContext } from "./context/create";
+import ResourceSelect, { getResourceId } from "./ResourceSelect";
 
 export default function ShareResource() {
   const { setOpenMobile, setOpen, isMobile, toggleSidebar } = useSidebar();
@@ -68,6 +69,8 @@ const submitNewPost = action(
       headers: rHeaders,
     });
 
+    console.log(title, description, url, resource);
+
     const rheaders = new Headers();
     rheaders.set("Authorization", `Bearer ${token}`);
     rheaders.set("Content-Type", "application/json");
@@ -85,42 +88,18 @@ const submitNewPost = action(
     });
 
     if (!rsp.ok) {
-      showToast({
-        variant: "error",
-        title: "Problem!",
-        description: "Could Not Submit a new resource post",
-      });
       throw Error("Error submitting a resource post");
     }
 
     const data = await rsp.json();
-
-    console.log("Response new post action: " + JSON.stringify(data));
-
-    showToast({
-      variant: "success",
-      title: "Success!",
-      description: "Resource Added.",
-    });
+    if ("error" in data) {
+      throw Error("Error submitting a resource post");
+    }
 
     return data;
   },
   "newPost",
 );
-
-const RESOURCE_MAPPING = {
-  Articles: 1,
-  "Code Snippets": 2,
-  "Learning Resources": 3,
-} as const; // TODO: Since a quick project this is quick way to do it.
-
-const RESOURCE_TYPES = Object.keys(RESOURCE_MAPPING) as Array<
-  keyof typeof RESOURCE_MAPPING
->;
-
-function getResourceId(key: string): number {
-  return RESOURCE_MAPPING[key as keyof typeof RESOURCE_MAPPING];
-}
 
 export function ShareSideBar() {
   const [title, setTitle] = createSignal("");
@@ -128,6 +107,7 @@ export function ShareSideBar() {
   const [tags, setTags] = createSignal([]); // TODO: Figure out how to go about this
   const [url, setUrl] = createSignal("");
   const [resource, setResource] = createSignal("");
+  const [errMsg, setErrMsg] = createSignal<string>();
 
   const { posts, mutatePosts } = useContext(PostContext);
 
@@ -138,15 +118,35 @@ export function ShareSideBar() {
 
   const { toggleSidebar } = useSidebar();
 
+  const clearInput = () => {
+    setTitle("");
+    setDescription("");
+    setUrl("");
+    setResource("");
+  };
+
   createEffect(() => {
     if (
       sentSubmission() &&
       !newPostSubmission.error &&
       newPostSubmission.result
     ) {
-      console.log("Mutate Called", newPostSubmission.result);
       mutatePosts(newPostSubmission.result);
+      showToast({
+        variant: "success",
+        title: "Success!",
+        description: "Resource Added.",
+      });
+      clearInput();
       setSentSubmission(false);
+    }
+
+    if (sentSubmission() && newPostSubmission.error) {
+      showToast({
+        variant: "error",
+        title: "Problem!",
+        description: "Could Not Submit a new resource post",
+      });
     }
   });
 
@@ -182,23 +182,12 @@ export function ShareSideBar() {
         <SidebarContent class="inline-flex flex-col justify-start items-start gap-4 w-full overflow-hidden">
           {/* Drop down for Type*/}
 
-          <Select
-            class="w-full text-black"
-            value={resource()}
-            onChange={setResource}
-            options={RESOURCE_TYPES}
-            placeholder="Select Resource Type"
-            itemComponent={(props) => (
-              <SelectItem item={props.item}>{props.item.rawValue}</SelectItem>
-            )}
-          >
-            <SelectTrigger aria-label="Resource type" class="w-full">
-              <SelectValue<string>>
-                {(state) => state.selectedOption()}
-              </SelectValue>
-            </SelectTrigger>
-            <SelectContent />
-          </Select>
+          <ResourceSelect resource={resource} setResource={setResource} />
+          <Show when={errMsg() !== undefined}>
+            <div class="text-red-600 text-xs font-medium mt-2">
+              Please select a resource type.
+            </div>
+          </Show>
 
           <div class="p-2 w-full">
             <MKInput
@@ -254,12 +243,21 @@ export function ShareSideBar() {
               variant="default"
               class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
               onClick={async () => {
+                const resourceId = getResourceId(resource());
+                console.log(resourceId);
+                if (resourceId == undefined) {
+                  setErrMsg("Please Select a Resource Type");
+                  return;
+                }
+
+                setErrMsg(undefined);
+
                 setSentSubmission(true);
                 await sendNewPostAction(
                   title(),
                   description(),
                   url(),
-                  getResourceId(resource()),
+                  resourceId,
                 );
               }}
             >

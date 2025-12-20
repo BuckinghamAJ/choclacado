@@ -98,3 +98,48 @@ func Delete(c *fiber.Ctx, queries *mkdb.Queries, id int32) error {
 	})
 
 }
+
+type UpdatePostReq struct {
+	Title       string  `json:"title"`
+	Description string  `json:"description"`
+	Url         *string `json:"url"`
+	User        string  `json:"user"`
+	Resource    int32   `json:"resource"`
+	Content     *string `json:"content"`
+}
+
+func (upr *UpdatePostReq) convertToQuery(id int32) mkdb.UpdatePostParams {
+	return mkdb.UpdatePostParams{
+		ID:          id,
+		Title:       upr.Title,
+		Description: upr.Description,
+		Resource:    upr.Resource,
+		Url:         database.StringToPgText(upr.Url),
+		Content:     database.StringToPgText(upr.Content),
+	}
+
+}
+
+func Update(c *fiber.Ctx, queries *mkdb.Queries, id int32) error {
+	var updatePostReq = new(UpdatePostReq)
+	user := c.Locals("user").(auth.User)
+
+	if err := c.BodyParser(updatePostReq); err != nil {
+		return c.JSON(errRsp.HandleErrors("Failed to parse Request", err))
+	}
+
+	if user.ID != updatePostReq.User {
+		return c.JSON(errRsp.HandleErrors("UnAuthorized Update Request", fmt.Errorf("%s not allowed to delete post %d", user.ID, id)))
+	}
+
+	err := queries.UpdatePost(c.Context(), updatePostReq.convertToQuery(id))
+	if err != nil {
+		return c.JSON(errRsp.HandleErrors("Error Updating Post", err))
+	}
+
+	return c.JSON(fiber.Map{
+		"success": true,
+		"message": "Post update successfully",
+		"id":      id,
+	})
+}

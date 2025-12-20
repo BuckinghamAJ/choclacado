@@ -33,7 +33,7 @@ export default function MKInput({
                   placeholder={placeholder}
                   type={type}
                   value={inputSignal()}
-                  onChange={(e) => inputSignalSetter(e.target.value)}
+                  onInput={(e) => inputSignalSetter(e.currentTarget.value)}
                   required={required}
                 ></input>
               }
@@ -43,9 +43,19 @@ export default function MKInput({
                   class="outline-none justify-start text-zinc-900 text-base font-normal font-['Inter'] leading-6 w-full h-full"
                   placeholder={placeholder}
                   value={inputSignal()}
-                  onChange={(e) => inputSignalSetter(e.target.value)}
+                  onInput={(e) => inputSignalSetter(e.currentTarget.value)}
                   required={required}
                 ></textarea>
+              </Match>
+              <Match when={type == "tags"}>
+                <input
+                  class="outline-none justify-start text-zinc-900 text-base font-normal font-['Inter'] leading-6 w-full h-full"
+                  placeholder={placeholder}
+                  type={type}
+                  value={inputSignal()}
+                  onInput={(e) => inputSignalSetter(e.currentTarget.value)}
+                  required={required}
+                ></input>
               </Match>
             </Switch>
           </div>

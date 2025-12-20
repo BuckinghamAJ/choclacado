@@ -27,7 +27,7 @@ const verifyUser = query(async function () {
 
   const data = await rsp.json();
 
-  console.log("Response: " + JSON.stringify(data));
+  // console.log("Response: " + JSON.stringify(data));
   // console.log("Response User: " + JSON.stringify(rsp.data.user));
   // console.log("Response Name: " + rsp.data.user.Name);
 

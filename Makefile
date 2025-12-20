@@ -25,10 +25,6 @@ docker-run:
 docker-dev:
 	@if docker compose -f docker-compose.dev.yml watch; then \
 		: ; \
-	else \
-		echo "Falling back to Docker Compose V1 (no watch support)"; \
-		echo "docker-compose does not support 'watch'. Falling back to 'up --build'."; \
-		docker-compose up --build; \
 	fi
 
 # Shutdown DB container

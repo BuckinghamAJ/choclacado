@@ -33,6 +33,7 @@ func (s *FiberServer) RegisterFiberRoutes() {
 	api.Get("/posts", s.getAllPostsHandler)
 	api.Post("/posts", s.addNewPost)
 	api.Delete("/posts/:id", s.deletePost)
+	api.Patch("/posts/:id", s.updatePost)
 
 }
 
@@ -103,4 +104,18 @@ func (s *FiberServer) deletePost(c *fiber.Ctx) error {
 	}
 	postId := int32(postIdInt)
 	return posts.Delete(c, s.db.Queries(), postId)
+}
+
+func (s *FiberServer) updatePost(c *fiber.Ctx) error {
+
+	postIdStr := c.Params("id")
+	postIdInt, err := strconv.ParseInt(postIdStr, 10, 32)
+
+	if err != nil {
+		return c.Status(http.StatusBadRequest).JSON(ErrorResponse{
+			Error: "Invalid post ID",
+		})
+	}
+	postId := int32(postIdInt)
+	return posts.Update(c, s.db.Queries(), postId)
 }

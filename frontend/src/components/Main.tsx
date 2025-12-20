@@ -1,14 +1,24 @@
-import { createSignal, Suspense, useContext } from "solid-js";
+import {
+  Accessor,
+  createMemo,
+  createResource,
+  createSignal,
+  Suspense,
+  useContext,
+} from "solid-js";
 import Filter from "./Filter";
 import MKInput from "./ui/mk-input";
-import { PostContext, UserContext } from "./context/create";
+import { PostContext, UserContext, UtilityContext } from "./context/create";
 import Posts from "./Posts";
 import { ShareSideBar } from "./Share";
+import MKDialog from "./MKDialog";
 
 export default function Main() {
-  const { posts } = useContext(PostContext);
+  const { singlePost, filteredPosts } = useContext(PostContext);
+  const { openDialog, dialogMode, search, setSearch } = useContext(
+    UtilityContext,
+  ) as Accessor<boolean>;
   const userId: string = useContext(UserContext) as string;
-  const [search, setSearch] = createSignal("");
 
   return (
     <div class="flex overflow-x-hidden">
@@ -31,13 +41,14 @@ export default function Main() {
             <div class="pt-2 flex-row w-full flex">
               <Filter />
               <Suspense fallback={"Loading..."}>
-                <Posts posts={posts} currentUserID={userId} />
+                <Posts posts={filteredPosts} currentUserID={userId} />
               </Suspense>
             </div>
           </div>
         </div>
       </main>
       <ShareSideBar></ShareSideBar>
+      <MKDialog open={openDialog} post={singlePost} mode={dialogMode} />
     </div>
   );
 }

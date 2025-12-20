@@ -18,7 +18,7 @@ export type Post = {
   Url: string | null; // pgtype.Text
   Content: string | null; // pgtype.Text
   Tags: Array<string> | null;
-  Accountposted: string;
+  Accountposted: string; // ID of post
 };
 
 export default function Posts({ posts, currentUserID }: PostsProp) {

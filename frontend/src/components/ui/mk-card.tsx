@@ -22,8 +22,9 @@ import { Button } from "./button";
 import { auth } from "~/lib/auth";
 import { getRequestEvent } from "solid-js/web";
 import { action, useAction, useSubmission } from "@solidjs/router";
-import { PostContext, UserContext } from "../context/create";
+import { PostContext, UserContext, UtilityContext } from "../context/create";
 import { showToast } from "./toast";
+import { Post } from "../Posts";
 
 type MKCardProps = {
   id: number;
@@ -46,8 +47,19 @@ export default function MKCard({
   tags,
   showEditDelete,
 }: MKCardProps) {
+  const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
+  const { posts, setSinglePost } = useContext(PostContext);
+
   return (
-    <Card class="flex-1 inline-flex flex-col justify-star p-2.5 items-start gap-2.5 w-[26vw]">
+    <Card
+      class="flex-1 inline-flex flex-col justify-star p-2.5 items-start gap-2.5 w-[26vw] hover:shadow-2xl hover:cursor-pointer hover:border-4"
+      onClick={() => {
+        const post = posts()?.find((p: Post) => p.ID === id);
+        setSinglePost(post);
+        setDialogMode("view");
+        setOpenDialog(true);
+      }}
+    >
       <CardHeader class="self-stretch inline-flex items-start justify-start px-6 pt-6 pb-2">
         <Flex flexDirection="row">
           <MKCardHeaderBadge resourceType={resourceType} />
@@ -145,7 +157,8 @@ function EditDelete({ postId }: EditDeleteProps) {
 
   const [sendToast, setSendToast] = createSignal(false);
 
-  const { posts, mutatePosts, refetch } = useContext(PostContext);
+  const { posts, setSinglePost, refetch } = useContext(PostContext);
+  const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
 
   createEffect(() => {
     if (sendToast()) {
@@ -158,7 +171,6 @@ function EditDelete({ postId }: EditDeleteProps) {
         });
       }
       if (deletePostSubmission.result !== undefined) {
-        console.log("HERE!", deletePostSubmission.result);
         showToast({
           variant: "default",
           title: "Delete",
@@ -173,14 +185,25 @@ function EditDelete({ postId }: EditDeleteProps) {
 
   return (
     <Flex alignItems="end" flexDirection="row" justifyContent="end">
-      {/*TODO: Bring up Dialog*/}
-      <Button variant="ghost" class="w-2">
+      <Button
+        variant="ghost"
+        class="w-2"
+        onClick={(e: MouseEvent) => {
+          e.stopPropagation();
+          const post = posts()?.find((p: Post) => p.ID === postId);
+          console.log(post);
+          setSinglePost(post);
+          setDialogMode("edit");
+          setOpenDialog(true);
+        }}
+      >
         <EditIcon />
       </Button>
       <Button
         variant="ghost"
         class="w-2"
-        onClick={async () => {
+        onClick={async (e: MouseEvent) => {
+          e.stopPropagation();
           await deletePostAction(postId, userId);
           setSendToast(true);
         }}
