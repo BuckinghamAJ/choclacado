@@ -1,5 +1,6 @@
 import {
   Accessor,
+  createEffect,
   createMemo,
   createResource,
   createSignal,
@@ -24,7 +25,7 @@ export default function Main() {
     handleDelete,
   } = useContext(UtilityContext);
 
-  const userId: string = useContext(UserContext) as string;
+  const userId: Accessor<string> = useContext(UserContext) as Accessor<string>;
 
   return (
     <div class="flex overflow-x-hidden">

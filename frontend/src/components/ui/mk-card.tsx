@@ -35,7 +35,7 @@ type MKCardProps = {
   postedByUser: string;
   url: string | null;
   tags: Array<string> | null;
-  showEditDelete: boolean;
+  showEditDelete: () => boolean;
 };
 
 export default function MKCard({
@@ -67,7 +67,7 @@ export default function MKCard({
       <CardHeader class="self-stretch inline-flex items-start justify-start px-6 pt-6 pb-2">
         <Flex flexDirection="row">
           <MKCardHeaderBadge resourceType={resourceType} />
-          <Show when={showEditDelete}>
+          <Show when={showEditDelete()}>
             <EditDelete postId={id} />
           </Show>
         </Flex>
@@ -207,7 +207,7 @@ function EditDelete({ postId }: EditDeleteProps) {
       </Button>
       <Button
         variant="ghost"
-        class="w-2"
+        class="w-2 delete-icon"
         onClick={async (e: MouseEvent) => {
           e.stopPropagation();
           const confirmed = await confirmDelete();

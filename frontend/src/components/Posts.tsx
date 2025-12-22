@@ -1,10 +1,10 @@
-import { createSignal, For, Resource } from "solid-js";
+import { Accessor, createEffect, createSignal, For, Resource } from "solid-js";
 import MKCard from "./ui/mk-card";
 import { Grid } from "./ui/grid";
 
 type PostsProp = {
   posts: Resource<any>;
-  currentUserID: string;
+  currentUserID: Accessor<string>;
 };
 
 export type Post = {
@@ -34,7 +34,7 @@ export default function Posts({ posts, currentUserID }: PostsProp) {
         {(post) => (
           <SinglePost
             post={post}
-            ownPost={currentUserID == post.Accountposted}
+            ownPost={() => currentUserID() == post.Accountposted}
           />
         )}
       </For>
@@ -44,7 +44,7 @@ export default function Posts({ posts, currentUserID }: PostsProp) {
 
 type PostProps = {
   post: Post;
-  ownPost: boolean;
+  ownPost: () => boolean;
 };
 
 function SinglePost({ post, ownPost }: PostProps) {

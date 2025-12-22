@@ -70,8 +70,6 @@ const submitNewPost = action(
       headers: rHeaders,
     });
 
-    console.log(title, description, url, resource);
-
     const rheaders = new Headers();
     rheaders.set("Authorization", `Bearer ${token}`);
     rheaders.set("Content-Type", "application/json");
@@ -270,7 +268,6 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
               class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
               onClick={async () => {
                 const resourceId = getResourceId(resource());
-                console.log(resourceId);
                 if (resourceId == undefined) {
                   setErrMsg("Please Select a Resource Type");
                   return;

@@ -63,6 +63,11 @@ const getAllPosts = query(async () => {
 
 export default function Home() {
   const authUser = createAsync(() => verifyUser());
+  const [userId, setUserId] = createSignal("");
+  createEffect(() => {
+    setUserId(authUser()?.ID);
+    console.log(userId());
+  });
 
   const [posts, { mutate, refetch }] = createResource(() => getAllPosts());
   const mutatePosts = (newPost) => {
@@ -138,7 +143,7 @@ export default function Home() {
           filteredPosts,
         }}
       >
-        <UserContext.Provider value={authUser()?.ID}>
+        <UserContext.Provider value={userId}>
           <UtilityContext.Provider
             value={{
               openDialog,
@@ -155,7 +160,9 @@ export default function Home() {
             }}
           >
             <Nav user={authUser()?.Name} />
-            <Main />
+            <Suspense>
+              <Main />
+            </Suspense>
           </UtilityContext.Provider>
         </UserContext.Provider>
       </PostContext.Provider>

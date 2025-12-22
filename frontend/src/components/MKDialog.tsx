@@ -141,7 +141,6 @@ const updatePost = action(
     });
 
     if (!rsp.ok) {
-      console.log(await rsp.json());
       throw Error("Error updating a resource post");
     }
 
@@ -179,7 +178,6 @@ export function MKDialogEdit({ open, post }: MKDialogViewProps) {
       !updatePostSubmission.error &&
       updatePostSubmission.result
     ) {
-      console.log("Should be seeing an success");
       showToast({
         variant: "success",
         title: "Success!",
