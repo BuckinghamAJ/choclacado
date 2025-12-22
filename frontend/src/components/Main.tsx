@@ -11,13 +11,19 @@ import MKInput from "./ui/mk-input";
 import { PostContext, UserContext, UtilityContext } from "./context/create";
 import Posts from "./Posts";
 import { ShareSideBar } from "./Share";
-import MKDialog from "./MKDialog";
+import MKDialog, { AreYouSureDialog } from "./MKDialog";
 
 export default function Main() {
   const { singlePost, filteredPosts } = useContext(PostContext);
-  const { openDialog, dialogMode, search, setSearch } = useContext(
-    UtilityContext,
-  ) as Accessor<boolean>;
+  const {
+    openDialog,
+    dialogMode,
+    search,
+    setSearch,
+    openYouSureDialog,
+    handleDelete,
+  } = useContext(UtilityContext);
+
   const userId: string = useContext(UserContext) as string;
 
   return (
@@ -49,6 +55,11 @@ export default function Main() {
       </main>
       <ShareSideBar post={singlePost}></ShareSideBar>
       <MKDialog open={openDialog} post={singlePost} mode={dialogMode} />
+      <AreYouSureDialog
+        open={openYouSureDialog}
+        onCancel={() => handleDelete(false)}
+        onConfirm={() => handleDelete(true)}
+      />
     </div>
   );
 }

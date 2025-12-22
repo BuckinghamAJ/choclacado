@@ -51,7 +51,6 @@ export default function MKCard({
   const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
   const { posts, setSinglePost } = useContext(PostContext);
   const { open: sideBarOpen } = useSidebar();
-  createEffect(() => console.log(url));
 
   return (
     <Card
@@ -164,7 +163,7 @@ function EditDelete({ postId }: EditDeleteProps) {
   const [sendToast, setSendToast] = createSignal(false);
 
   const { posts, setSinglePost, refetch } = useContext(PostContext);
-  const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
+  const { confirmDelete } = useContext(UtilityContext);
 
   const { toggleSidebar } = useSidebar();
 
@@ -199,6 +198,7 @@ function EditDelete({ postId }: EditDeleteProps) {
         onClick={(e: MouseEvent) => {
           e.stopPropagation();
           const post = posts()?.find((p: Post) => p.ID === postId);
+          console.log(post);
           setSinglePost(post);
           toggleSidebar();
         }}
@@ -210,6 +210,9 @@ function EditDelete({ postId }: EditDeleteProps) {
         class="w-2"
         onClick={async (e: MouseEvent) => {
           e.stopPropagation();
+          const confirmed = await confirmDelete();
+          if (!confirmed) return;
+
           await deletePostAction(postId, userId);
           setSendToast(true);
         }}

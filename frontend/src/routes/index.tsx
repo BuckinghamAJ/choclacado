@@ -65,16 +65,39 @@ export default function Home() {
   const authUser = createAsync(() => verifyUser());
 
   const [posts, { mutate, refetch }] = createResource(() => getAllPosts());
-
-  const [openDialog, setOpenDialog] = createSignal(false);
-  const [dialogMode, setDialogMode] = createSignal("view");
-
-  const [singlePost, setSinglePost] = createSignal<Post>();
-
   const mutatePosts = (newPost) => {
     mutate((posts) => [newPost, ...posts]);
   };
 
+  // Dialog View
+  const [openDialog, setOpenDialog] = createSignal(false);
+  const [dialogMode, setDialogMode] = createSignal("view");
+
+  // Are You Sure Dialog
+  const [openYouSureDialog, setOpenYouSureDialog] = createSignal<{
+    isOpen: boolean;
+    resolve?: (value: boolean) => void;
+  }>({ isOpen: false });
+
+  const handleDelete = (choice: boolean) => {
+    const resolver = openYouSureDialog().resolve;
+    if (resolver) resolver(choice); // This triggers the 'await' in your button!
+    setOpenYouSureDialog({ isOpen: false });
+  };
+
+  const confirmDelete = () => {
+    setOpenYouSureDialog({ isOpen: true });
+
+    // Return a promise that we manually resolve later
+    return new Promise<boolean>((res) => {
+      setOpenYouSureDialog((prev) => ({ ...prev, resolve: res }));
+    });
+  };
+
+  // Single Post information
+  const [singlePost, setSinglePost] = createSignal<Post>();
+
+  // Filter / Search Posts
   const [search, setSearch] = createSignal("");
   const [filterType, setFilterType] = createSignal<string[]>([]);
 
@@ -125,6 +148,10 @@ export default function Home() {
               search,
               setSearch,
               setFilterType,
+              openYouSureDialog,
+              setOpenYouSureDialog,
+              confirmDelete,
+              handleDelete,
             }}
           >
             <Nav user={authUser()?.Name} />

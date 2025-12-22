@@ -5,7 +5,8 @@ import { jwt } from "better-auth/plugins";
 export const auth = betterAuth({
   database: new Pool({
     connectionString: process.env.CHOCLACADO_DATABASE_URL!,
-    max: 10,
+    max: 5,
+    min: 1,
     idleTimeoutMillis: 30000,
     connectionTimeoutMillis: 2000,
     maxLifetimeSeconds: 60,

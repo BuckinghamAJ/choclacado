@@ -124,6 +124,7 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
     setUrl(p?.Url || "");
     setResource(p?.ResourceType || "");
     setTags(p?.Tags || []);
+    setContent(p?.Content || "");
   });
 
   const { posts, mutatePosts } = useContext(PostContext);

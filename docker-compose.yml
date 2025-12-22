@@ -38,8 +38,8 @@ services:
       CHOCLACADO_DB_USERNAME: ${CHOCLACADO_DB_USERNAME}
       CHOCLACADO_DB_PASSWORD: ${CHOCLACADO_DB_PASSWORD}
       CHOCLACADO_DB_SCHEMA: ${CHOCLACADO_DB_SCHEMA}
-    ports:
-      - "4242:4242"
+    expose:
+      - "4242"
     depends_on:
       api:
         condition: service_started
@@ -47,8 +47,6 @@ services:
       - choclacado
     deploy:
       replicas: 3
-      restart_policy:
-        condition: on-failure
   psql_c:
     image: postgres:latest
     restart: unless-stopped

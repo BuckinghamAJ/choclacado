@@ -3,6 +3,7 @@ import {
   createEffect,
   createSignal,
   Match,
+  Setter,
   Show,
   Switch,
   useContext,
@@ -259,6 +260,44 @@ export function MKDialogEdit({ open, post }: MKDialogViewProps) {
             }}
           >
             Update Resource
+          </Button>
+        </DialogFooter>
+      </DialogContent>
+    </Dialog>
+  );
+}
+
+type AreYouSureDialogProps = {
+  open: Accessor<{
+    isOpen: boolean;
+    resolve?: (value: boolean) => void;
+  }>;
+  onConfirm: () => Promise<void> | void;
+  onCancel: () => void;
+  message?: string;
+};
+
+export function AreYouSureDialog({
+  open,
+  onConfirm,
+  onCancel,
+  message,
+}: AreYouSureDialogProps) {
+  return (
+    <Dialog open={open().isOpen}>
+      <DialogContent class="sm:max-w-[350px] bg-white text-black">
+        <DialogHeader>
+          <DialogTitle>Are you sure?</DialogTitle>
+        </DialogHeader>
+        <div class="py-4">
+          {message ?? "Are you sure you want to delete this resource?"}
+        </div>
+        <DialogFooter>
+          <Button variant="outline" onClick={onCancel}>
+            Cancel
+          </Button>
+          <Button variant="destructive" onClick={onConfirm}>
+            Yes, I'm sure
           </Button>
         </DialogFooter>
       </DialogContent>
