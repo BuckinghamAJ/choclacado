@@ -3,14 +3,19 @@ import { FileRoutes } from "@solidjs/start/router";
 import { Suspense } from "solid-js";
 import Nav from "~/components/Nav";
 import "./app.css";
+import { ShareSideBar } from "./components/Share";
+import { SidebarProvider, SidebarTrigger } from "./components/ui/sidebar";
+import { Toaster } from "./components/ui/toast";
 
 export default function App() {
   return (
     <Router
-      root={props => (
+      root={(props) => (
         <>
-          <Nav />
-          <Suspense>{props.children}</Suspense>
+          <SidebarProvider class="inline" defaultOpen={false}>
+            <Suspense>{props.children}</Suspense>
+            <Toaster />
+          </SidebarProvider>
         </>
       )}
     >

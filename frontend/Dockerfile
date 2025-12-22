@@ -5,6 +5,9 @@ RUN corepack enable
 
 WORKDIR /app
 
+# Create a non-root user and group
+RUN addgroup --system appuser && adduser --system --ingroup appuser appuser
+
 FROM base AS dev
 ENV CI=false
 COPY package.json pnpm-lock.yaml ./
@@ -23,7 +26,7 @@ RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --prod --frozen-l
 FROM base AS build
 COPY .  .
 RUN --mount=type=cache,id=pnpm,target=/pnpm/store pnpm install --frozen-lockfile
-RUN pnpm run build || (echo "Build failed" && exit 1)
+RUN pnpm run build
 
 FROM base AS prod
 COPY --from=prod-deps /app/node_modules /app/node_modules
@@ -33,4 +36,5 @@ COPY --from=build /app/.vinxi /app/.vinxi
 COPY --from=build /app/.output /app/.output
 
 EXPOSE 4242
+USER appuser
 CMD [ "pnpm", "prod"]

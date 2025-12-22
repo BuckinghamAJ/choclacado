@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: .
+      context: ./api
       dockerfile: Dockerfile
       target: prod
     restart: unless-stopped
@@ -16,6 +16,7 @@ services:
       CHOCLACADO_DB_USERNAME: ${CHOCLACADO_DB_USERNAME}
       CHOCLACADO_DB_PASSWORD: ${CHOCLACADO_DB_PASSWORD}
       CHOCLACADO_DB_SCHEMA: ${CHOCLACADO_DB_SCHEMA}
+      BETTER_AUTH_JWT_URL: ${BETTER_AUTH_JWT_URL}
     depends_on:
       psql_c:
         condition: service_healthy
@@ -29,13 +30,23 @@ services:
     environment:
       API_URL: http://api:${API_PORT}
       NODE_ENV: production
-    ports:
-      - "4242:4242"
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      CHOCLACADO_DB_HOST: ${CHOCLACADO_DB_HOST}
+      CHOCLACADO_DB_PORT: ${CHOCLACADO_DB_PORT}
+      CHOCLACADO_DB_DATABASE: ${CHOCLACADO_DB_DATABASE}
+      CHOCLACADO_DB_USERNAME: ${CHOCLACADO_DB_USERNAME}
+      CHOCLACADO_DB_PASSWORD: ${CHOCLACADO_DB_PASSWORD}
+      CHOCLACADO_DB_SCHEMA: ${CHOCLACADO_DB_SCHEMA}
+    expose:
+      - "4242"
     depends_on:
       api:
         condition: service_started
     networks:
       - choclacado
+    deploy:
+      replicas: 3
   psql_c:
     image: postgres:latest
     restart: unless-stopped

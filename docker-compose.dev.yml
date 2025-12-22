@@ -1,7 +1,7 @@
 services:
   api:
     build:
-      context: .
+      context: ./api
       dockerfile: Dockerfile
       target: prod
     restart: unless-stopped
@@ -16,6 +16,8 @@ services:
       CHOCLACADO_DB_USERNAME: ${CHOCLACADO_DB_USERNAME}
       CHOCLACADO_DB_PASSWORD: ${CHOCLACADO_DB_PASSWORD}
       CHOCLACADO_DB_SCHEMA: ${CHOCLACADO_DB_SCHEMA}
+      CHOCLACADO_DATABASE_URL: ${CHOCLACADO_DATABASE_URL}
+      BETTER_AUTH_JWT_URL: ${BETTER_AUTH_JWT_URL}
     depends_on:
       psql_c:
         condition: service_healthy
@@ -23,12 +25,15 @@ services:
       - choclacado
     develop:
       watch:
-        - action: sync+restart
-          path: ./cmd
-          target: /app/cmd
-        - action: sync+restart
-          path: ./internal
+        - action: rebuild
+          path: ./api/auth
+          target: /app/auth
+        - action: rebuild
+          path: ./api/internal
           target: /app/internal
+        - action: rebuild
+          path: ./api/posts
+          target: /app/posts
         - action: rebuild
           path: go.mod
         - action: rebuild
@@ -43,6 +48,16 @@ services:
     environment:
       API_URL: http://api:${API_PORT}
       NODE_ENV: development
+      BETTER_AUTH_URL: ${BETTER_AUTH_URL}
+      BETTER_AUTH_SECRET: ${BETTER_AUTH_SECRET}
+      CHOCLACADO_DB_HOST: ${CHOCLACADO_DB_HOST}
+      CHOCLACADO_DB_PORT: ${CHOCLACADO_DB_PORT}
+      CHOCLACADO_DB_DATABASE: ${CHOCLACADO_DB_DATABASE}
+      CHOCLACADO_DB_USERNAME: ${CHOCLACADO_DB_USERNAME}
+      CHOCLACADO_DB_PASSWORD: ${CHOCLACADO_DB_PASSWORD}
+      CHOCLACADO_DB_SCHEMA: ${CHOCLACADO_DB_SCHEMA}
+      CHOCLACADO_DATABASE_URL: ${CHOCLACADO_DATABASE_URL}
+
     ports:
       - "3000:3000"
     depends_on:
@@ -67,7 +82,7 @@ services:
     ports:
       - "${CHOCLACADO_DB_PORT}:5432"
     volumes:
-      - psql_volume_c:/var/lib/postgresql/data_c
+      - psql_volume_c:/var/lib/postgresql
     healthcheck:
       test:
         [
@@ -80,8 +95,11 @@ services:
       start_period: 15s
     networks:
       - choclacado
+      - debug
 
 volumes:
   psql_volume_c:
 networks:
   choclacado:
+  debug:
+    external: true
