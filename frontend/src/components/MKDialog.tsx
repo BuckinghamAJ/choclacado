@@ -26,6 +26,8 @@ import { getRequestEvent } from "solid-js/web";
 import { auth } from "~/lib/auth";
 import ResourceSelect, { getResourceId } from "./ResourceSelect";
 import { showToast } from "./ui/toast";
+import MKContent from "./Content";
+import { useSidebar } from "./ui/sidebar";
 
 type MKDialogProps = {
   open: Accessor<boolean>;
@@ -61,7 +63,7 @@ export function MKDialogView({ open, post }: MKDialogViewProps) {
           <DialogClose />
         </DialogHeader>
 
-        <Show when={post().Url !== null}>
+        <Show when={post().Url}>
           <div class="w-fit justify-start text-slate-900 text-base font-bold font-['Inter'] underline leading-7">
             <a
               target="_blank"
@@ -75,8 +77,8 @@ export function MKDialogView({ open, post }: MKDialogViewProps) {
           </div>
         </Show>
 
-        <Show when={post().Content !== null}>
-          <div class="text-black"></div>
+        <Show when={post().Content}>
+          <MKContent displayContent={post().Content ?? undefined} displayOnly />
         </Show>
       </DialogContent>
     </Dialog>

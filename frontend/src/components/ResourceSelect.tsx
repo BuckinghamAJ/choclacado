@@ -13,7 +13,7 @@ const RESOURCE_MAPPING = {
   "Learning Resources": 3,
 } as const; // TODO: Since a quick project this is quick way to do it.
 
-const RESOURCE_TYPES = Object.keys(RESOURCE_MAPPING) as Array<
+export const RESOURCE_TYPES = Object.keys(RESOURCE_MAPPING) as Array<
   keyof typeof RESOURCE_MAPPING
 >;
 

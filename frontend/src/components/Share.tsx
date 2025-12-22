@@ -1,10 +1,9 @@
-import { Accessor, Setter, Show, useContext } from "solid-js";
+import { Accessor, Show, useContext } from "solid-js";
 import MKInput from "./ui/mk-input";
 import {
   Sidebar,
   SidebarContent,
   SidebarFooter,
-  SidebarGroup,
   SidebarHeader,
   SidebarTrigger,
   useSidebar,
@@ -13,27 +12,23 @@ import { createSignal, createEffect } from "solid-js";
 import { Button } from "./ui/button";
 import { CloseIcon } from "./ui/icons";
 import { Flex } from "./ui/flex";
-import {
-  Select,
-  SelectContent,
-  SelectItem,
-  SelectTrigger,
-  SelectValue,
-} from "./ui/select";
 import { action, useAction, useSubmission } from "@solidjs/router";
-import goApiClient from "~/lib/go-api-client";
 import { getRequestEvent } from "solid-js/web";
-import { getCookie } from "vinxi/http";
-import authClient from "~/lib/auth-client";
 import { auth } from "~/lib/auth";
 import { showToast } from "./ui/toast";
 import { PostContext } from "./context/create";
 import ResourceSelect, { getResourceId } from "./ResourceSelect";
+import { Post } from "./Posts";
+import MKContent from "./Content";
 
 export default function ShareResource() {
   const { setOpenMobile, setOpen, isMobile, toggleSidebar } = useSidebar();
 
+  const { setSinglePost } = useContext(PostContext);
+
   const handleShareClick = () => {
+    setSinglePost(undefined);
+
     if (isMobile()) {
       setOpenMobile(true);
     } else {
@@ -60,7 +55,13 @@ const NEW_POST_ENDPOINT = "/api/posts";
 const GO_API_URL = process.env.GO_API_URL || "http://api:7373";
 
 const submitNewPost = action(
-  async (title: string, description: string, url: string, resource: number) => {
+  async (
+    title: string,
+    description: string,
+    url: string,
+    resource: number,
+    content: string,
+  ) => {
     "use server";
     const event = getRequestEvent();
     const rHeaders = new Headers(event?.request.headers);
@@ -84,6 +85,7 @@ const submitNewPost = action(
         description: description,
         resource: resource,
         url: url,
+        content: content,
       }),
     });
 
@@ -101,13 +103,28 @@ const submitNewPost = action(
   "newPost",
 );
 
-export function ShareSideBar() {
+type ShareSideBarProps = {
+  post: Accessor<Post>;
+};
+
+export function ShareSideBar({ post }: ShareSideBarProps) {
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
-  const [tags, setTags] = createSignal([]); // TODO: Figure out how to go about this
+  const [tags, setTags] = createSignal<string[]>(); // TODO: Figure out how to go about this
   const [url, setUrl] = createSignal("");
   const [resource, setResource] = createSignal("");
+  const [content, setContent] = createSignal<string>("");
+
   const [errMsg, setErrMsg] = createSignal<string>();
+
+  createEffect(() => {
+    const p = post();
+    setTitle(p?.Title || "");
+    setDescription(p?.Description || "");
+    setUrl(p?.Url || "");
+    setResource(p?.ResourceType || "");
+    setTags(p?.Tags || []);
+  });
 
   const { posts, mutatePosts } = useContext(PostContext);
 
@@ -123,6 +140,7 @@ export function ShareSideBar() {
     setDescription("");
     setUrl("");
     setResource("");
+    setContent("");
   };
 
   createEffect(() => {
@@ -179,7 +197,7 @@ export function ShareSideBar() {
             <CloseIcon />
           </Button>
         </SidebarHeader>
-        <SidebarContent class="inline-flex flex-col justify-start items-start gap-4 w-full overflow-hidden">
+        <SidebarContent class="inline-flex flex-col justify-start items-start gap-4 w-full overflow-auto">
           {/* Drop down for Type*/}
 
           <ResourceSelect resource={resource} setResource={setResource} />
@@ -221,21 +239,28 @@ export function ShareSideBar() {
             {/* Add a button*/}
           </div>
 
-          <div class="p-2 w-full">
-            <MKInput
-              label="Article URL"
-              placeholder="https://example.com"
-              type="url"
-              inputSignal={url}
-              inputSignalSetter={setUrl}
-            ></MKInput>
-          </div>
+          <Show when={resource() !== "Code Snippets"}>
+            <div class="p-2 w-full">
+              <MKInput
+                label="Article URL"
+                placeholder="https://example.com"
+                type="url"
+                inputSignal={url}
+                inputSignalSetter={setUrl}
+              ></MKInput>
+            </div>
+          </Show>
+
+          <Show when={resource() == "Code Snippets"}>
+            <MKContent content={content} setContent={setContent} />
+          </Show>
         </SidebarContent>
         <SidebarFooter>
           <Flex class="justify-end-safe gap-2">
             <Button
               variant="ghost"
               class="leading-6 text-black text-sm px-4 py-2 w-1/2 bg-white rounded-md outline-1 -outline-offset-1 outline-black/10 "
+              onClick={(event: MouseEvent) => toggleSidebar()}
             >
               Close
             </Button>
@@ -258,6 +283,7 @@ export function ShareSideBar() {
                   description(),
                   url(),
                   resourceId,
+                  content(),
                 );
               }}
             >

@@ -170,3 +170,12 @@ body {
     --card: 222.2 84% 4.9%;
     --card-foreground: 210 40% 98%;
 }
+
+.markdown-rendered > h1,
+.markdown-rendered > h2,
+.markdown-rendered > h3,
+.markdown-rendered > h4,
+.markdown-rendered > h5,
+.markdown-rendered > p {
+    all: revert;
+}

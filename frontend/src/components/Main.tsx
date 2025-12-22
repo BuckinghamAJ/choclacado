@@ -47,7 +47,7 @@ export default function Main() {
           </div>
         </div>
       </main>
-      <ShareSideBar></ShareSideBar>
+      <ShareSideBar post={singlePost}></ShareSideBar>
       <MKDialog open={openDialog} post={singlePost} mode={dialogMode} />
     </div>
   );

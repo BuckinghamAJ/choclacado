@@ -25,6 +25,7 @@ import { action, useAction, useSubmission } from "@solidjs/router";
 import { PostContext, UserContext, UtilityContext } from "../context/create";
 import { showToast } from "./toast";
 import { Post } from "../Posts";
+import { useSidebar } from "./sidebar";
 
 type MKCardProps = {
   id: number;
@@ -49,15 +50,19 @@ export default function MKCard({
 }: MKCardProps) {
   const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
   const { posts, setSinglePost } = useContext(PostContext);
+  const { open: sideBarOpen } = useSidebar();
+  createEffect(() => console.log(url));
 
   return (
     <Card
       class="flex-1 inline-flex flex-col justify-star p-2.5 items-start gap-2.5 w-[26vw] hover:shadow-2xl hover:cursor-pointer hover:border-4"
       onClick={() => {
-        const post = posts()?.find((p: Post) => p.ID === id);
-        setSinglePost(post);
-        setDialogMode("view");
-        setOpenDialog(true);
+        if (!sideBarOpen()) {
+          const post = posts()?.find((p: Post) => p.ID === id);
+          setSinglePost(post);
+          setDialogMode("view");
+          setOpenDialog(true);
+        }
       }}
     >
       <CardHeader class="self-stretch inline-flex items-start justify-start px-6 pt-6 pb-2">
@@ -78,12 +83,13 @@ export default function MKCard({
           {description}
         </div>
         <div class="justify-start text-slate-900 text-base font-bold font-['Inter'] underline leading-7 ">
-          <Show when={url !== null}>
+          <Show when={url}>
             <a
               target="_blank"
               rel="noopener noreferrer"
               href={url!}
               class="inline-flex gap-1 align-middle items-center leading-7"
+              onClick={(e: MouseEvent) => e.stopPropagation()}
             >
               <ExternalLinkIcon />
               View article
@@ -160,6 +166,8 @@ function EditDelete({ postId }: EditDeleteProps) {
   const { posts, setSinglePost, refetch } = useContext(PostContext);
   const { setOpenDialog, setDialogMode } = useContext(UtilityContext);
 
+  const { toggleSidebar } = useSidebar();
+
   createEffect(() => {
     if (sendToast()) {
       if (deletePostSubmission.error !== undefined) {
@@ -191,10 +199,8 @@ function EditDelete({ postId }: EditDeleteProps) {
         onClick={(e: MouseEvent) => {
           e.stopPropagation();
           const post = posts()?.find((p: Post) => p.ID === postId);
-          console.log(post);
           setSinglePost(post);
-          setDialogMode("edit");
-          setOpenDialog(true);
+          toggleSidebar();
         }}
       >
         <EditIcon />
@@ -224,13 +230,13 @@ function MKCardHeaderBadge({ resourceType }: MKHeaderBadgeProps) {
       <MKIcon resource={resourceType} />
       <Switch>
         <Match when={resourceType == "Articles"}>
-          <span class="ml-1">Article</span>
+          <span class="ml-1 w-max">Article</span>
         </Match>
         <Match when={resourceType == "Code Snippets"}>
-          <span class="ml-1">Code Snippet </span>
+          <span class="ml-1 w-max">Code Snippet </span>
         </Match>
         <Match when={resourceType == "Learning Resources"}>
-          <span class="ml-1"> Course</span>
+          <span class="ml-1 w-max"> Course</span>
         </Match>
       </Switch>
     </Badge>

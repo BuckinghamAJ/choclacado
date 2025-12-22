@@ -1,4 +1,3 @@
-import React from "react";
 import { Accessor, Match, Setter, Show, Switch } from "solid-js";
 
 type MKInputProps = {

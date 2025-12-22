@@ -76,16 +76,23 @@ export default function Home() {
   };
 
   const [search, setSearch] = createSignal("");
+  const [filterType, setFilterType] = createSignal<string[]>([]);
 
   const filteredPosts = createMemo(() => {
     const criteria = search().toLowerCase();
-    if (!criteria) return posts();
+    const fType = filterType();
+    if (!criteria && fType.length === 0) return posts();
 
-    return posts()?.filter(
-      (post: Post) =>
+    return posts()?.filter((post: Post) => {
+      const matchesSearch =
         post.Title.toLowerCase().includes(criteria) ||
-        post.Description.toLowerCase().includes(criteria),
-    );
+        post.Description.toLowerCase().includes(criteria);
+
+      const matchesType =
+        fType.length === 0 || fType.includes(post.ResourceType);
+
+      return matchesSearch && matchesType;
+    });
   });
 
   const navigate = useNavigate();
@@ -98,7 +105,6 @@ export default function Home() {
 
   return (
     <>
-      <Nav user={authUser()?.Name} />
       <PostContext.Provider
         value={{
           posts,
@@ -118,8 +124,10 @@ export default function Home() {
               setDialogMode,
               search,
               setSearch,
+              setFilterType,
             }}
           >
+            <Nav user={authUser()?.Name} />
             <Main />
           </UtilityContext.Provider>
         </UserContext.Provider>
