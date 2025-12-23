@@ -37,7 +37,6 @@ const getAllPosts = query(async () => {
   "use server";
   const event = getRequestEvent();
   const tHeaders = new Headers(event?.request.headers);
-  console.log("Get All Posts!");
   const { token } = await auth.api.getToken({
     headers: tHeaders,
   });
@@ -63,13 +62,24 @@ const getAllPosts = query(async () => {
 
 export default function Home() {
   const authUser = createAsync(() => verifyUser());
+  const navigate = useNavigate();
+  createEffect(() => {
+    const user = authUser();
+    if (user !== undefined && "error" in user) {
+      navigate("/login");
+    }
+  });
+
   const [userId, setUserId] = createSignal("");
   createEffect(() => {
     setUserId(authUser()?.ID);
-    console.log(userId());
   });
 
-  const [posts, { mutate, refetch }] = createResource(() => getAllPosts());
+  const [posts, { mutate, refetch }] = createResource(
+    () => authUser()?.ID,
+    () => getAllPosts(),
+  );
+
   const mutatePosts = (newPost) => {
     mutate((posts) => [newPost, ...posts]);
   };
@@ -123,14 +133,6 @@ export default function Home() {
     });
   });
 
-  const navigate = useNavigate();
-  createEffect(() => {
-    const user = authUser();
-    if (user !== undefined && "error" in user) {
-      navigate("/login");
-    }
-  });
-
   return (
     <>
       <PostContext.Provider
@@ -159,7 +161,7 @@ export default function Home() {
               handleDelete,
             }}
           >
-            <Nav user={authUser()?.Name} />
+            <Nav user={authUser} />
             <Suspense>
               <Main />
             </Suspense>

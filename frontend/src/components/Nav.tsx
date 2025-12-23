@@ -54,7 +54,7 @@ export default function Nav({ user }: NavProps) {
               <NavigationMenuItem>
                 <NavigationMenuTrigger class="text-center justify-start text-black text-base font-normal font-['Inter'] leading-7">
                   <AvatarIcon />
-                  {user}
+                  {user()?.Name}
                 </NavigationMenuTrigger>
                 <NavigationMenuContent class="w-max min-w-fit">
                   <NavigationMenuLink class="w-max min-w-fit">

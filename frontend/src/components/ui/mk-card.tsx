@@ -198,7 +198,6 @@ function EditDelete({ postId }: EditDeleteProps) {
         onClick={(e: MouseEvent) => {
           e.stopPropagation();
           const post = posts()?.find((p: Post) => p.ID === postId);
-          console.log(post);
           setSinglePost(post);
           toggleSidebar();
         }}
