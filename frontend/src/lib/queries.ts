@@ -2,7 +2,7 @@ import { query, redirect } from "@solidjs/router";
 import goApiClient from "./go-api-client";
 import { getRequestEvent } from "solid-js/web";
 
-const BETTER_AUTH_URL = "http://localhost:3000";
+const BETTER_AUTH_URL = process.env.BETTER_AUTH_URL || "http://localhost:3000";
 
 // TODO: Define types!
 const verifyUser = query(async function () {
