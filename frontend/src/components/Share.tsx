@@ -105,7 +105,58 @@ type ShareSideBarProps = {
   post: Accessor<Post>;
 };
 
+const updatePost = action(
+  async (
+    title: string,
+    description: string,
+    url: string,
+    resource: string,
+    post: Post,
+  ) => {
+    "use server";
+
+    const event = getRequestEvent();
+    const rHeaders = new Headers(event?.request.headers);
+
+    const { token } = await auth.api.getToken({
+      headers: rHeaders,
+    });
+
+    const rheaders = new Headers();
+    rheaders.set("Authorization", `Bearer ${token}`);
+    rheaders.set("Content-Type", "application/json");
+
+    // Need to add the ID to URL, and content etc.
+    const updatePostUrl = new URL(`/api/posts/${post.ID}`, GO_API_URL);
+    const rsp = await fetch(updatePostUrl.toString(), {
+      method: "PATCH",
+      headers: rheaders,
+      body: JSON.stringify({
+        title: title,
+        description: description,
+        url: url,
+        content: post.Content,
+        resource: getResourceId(resource),
+        user: post.Accountposted,
+      }),
+    });
+
+    if (!rsp.ok) {
+      throw Error("Error updating a resource post");
+    }
+
+    const data = await rsp.json();
+    if ("error" in data) {
+      throw Error("Error updating a resource post");
+    }
+
+    return { status: "Ok" };
+  },
+);
+
 export function ShareSideBar({ post }: ShareSideBarProps) {
+  const { refetch } = useContext(PostContext);
+
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
   const [tags, setTags] = createSignal<string[]>(); // TODO: Figure out how to go about this
@@ -113,7 +164,37 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
   const [resource, setResource] = createSignal("");
   const [content, setContent] = createSignal<string>("");
 
+  const [toUpdate, setToUpdate] = createSignal(false);
+
   const [errMsg, setErrMsg] = createSignal<string>();
+
+  const updatePostAction = useAction(updatePost);
+  const updatePostSubmission = useSubmission(updatePost);
+  const [sentUpdate, setSentUpdate] = createSignal(false);
+
+  createEffect(() => {
+    if (
+      sentUpdate() &&
+      !updatePostSubmission.error &&
+      updatePostSubmission.result
+    ) {
+      showToast({
+        variant: "success",
+        title: "Success!",
+        description: "Post Updated.",
+      });
+      refetch();
+      setSentUpdate(false);
+    }
+
+    if (sentUpdate() && updatePostSubmission.error) {
+      showToast({
+        variant: "error",
+        title: "Problem!",
+        description: "There was an issue updating the post.",
+      });
+    }
+  });
 
   createEffect(() => {
     const p = post();
@@ -123,6 +204,12 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
     setResource(p?.ResourceType || "");
     setTags(p?.Tags || []);
     setContent(p?.Content || "");
+
+    if (p?.Title && p?.Description) {
+      setToUpdate(true);
+    } else {
+      setToUpdate(false);
+    }
   });
 
   const { posts, mutatePosts } = useContext(PostContext);
@@ -263,33 +350,70 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
             >
               Close
             </Button>
-            <Button
-              variant="default"
-              class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
-              onClick={async () => {
-                const resourceId = getResourceId(resource());
-                if (resourceId == undefined) {
-                  setErrMsg("Please Select a Resource Type");
-                  return;
-                }
 
-                setErrMsg(undefined);
+            <Show
+              when={toUpdate()}
+              fallback={
+                <ShareButton
+                  onClick={async () => {
+                    const resourceId = getResourceId(resource());
+                    if (resourceId == undefined) {
+                      setErrMsg("Please Select a Resource Type");
+                      return;
+                    }
 
-                setSentSubmission(true);
-                await sendNewPostAction(
-                  title(),
-                  description(),
-                  url(),
-                  resourceId,
-                  content(),
-                );
-              }}
+                    setErrMsg(undefined);
+
+                    setSentSubmission(true);
+                    await sendNewPostAction(
+                      title(),
+                      description(),
+                      url(),
+                      resourceId,
+                      content(),
+                    );
+                  }}
+                >
+                  Share
+                </ShareButton>
+              }
             >
-              Share
-            </Button>
+              <ShareButton
+                onClick={async () => {
+                  await updatePostAction(
+                    title(),
+                    description(),
+                    url(),
+                    resource(),
+                    post(),
+                  );
+
+                  setSentUpdate(true);
+                }}
+              >
+                Update Resource
+              </ShareButton>
+            </Show>
           </Flex>
         </SidebarFooter>
       </Sidebar>
     </>
+  );
+}
+
+type ShareButtonProps = {
+  onClick: (event: MouseEvent) => void | Promise<void>;
+  children: string;
+};
+
+function ShareButton({ onClick, children }: ShareButtonProps) {
+  return (
+    <Button
+      variant="default"
+      class="px-4 py-2 w-1/2 rounded-md opacity-50 bg-slate-900"
+      onClick={onClick}
+    >
+      {children}
+    </Button>
   );
 }
