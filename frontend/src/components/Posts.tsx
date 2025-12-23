@@ -1,4 +1,4 @@
-import { Accessor, createEffect, createSignal, For, Resource } from "solid-js";
+import { Accessor, For, Resource } from "solid-js";
 import MKCard from "./ui/mk-card";
 import { Grid } from "./ui/grid";
 
@@ -61,21 +61,5 @@ function SinglePost({ post, ownPost }: PostProps) {
         showEditDelete={ownPost}
       ></MKCard>
     </div>
-  );
-}
-
-function SinglePostDetail({ post }: PostProps) {
-  // TODO: Add Markdown Rendering, w/ highlight.js
-  // https://chatgpt.com/share/693c746c-9868-8009-8b65-9354672eb332 (discussion)
-  return (
-    <MKCard
-      title={post.Title}
-      description={post.Description}
-      resourceType={post.ResourceType}
-      url={post.Url}
-      tags={post.Tags}
-      postedByUser={post.PostedBy}
-      showEditDelete={false}
-    ></MKCard>
   );
 }

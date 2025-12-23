@@ -2,10 +2,7 @@ import {
   Accessor,
   createEffect,
   createSignal,
-  Match,
-  Setter,
   Show,
-  Switch,
   useContext,
 } from "solid-js";
 import { Button } from "./ui/button";
@@ -16,11 +13,10 @@ import {
   DialogFooter,
   DialogHeader,
   DialogTitle,
-  DialogTrigger,
 } from "./ui/dialog";
 import { Post } from "./Posts";
 import { CloseIcon, ExternalLinkIcon } from "./ui/icons";
-import { PostContext, UtilityContext } from "./context/create";
+import { UtilityContext } from "./context/create";
 import MKInput from "./ui/mk-input";
 import { action, useAction, useSubmission } from "@solidjs/router";
 import { getRequestEvent } from "solid-js/web";
@@ -28,7 +24,6 @@ import { auth } from "~/lib/auth";
 import ResourceSelect, { getResourceId } from "./ResourceSelect";
 import { showToast } from "./ui/toast";
 import MKContent from "./Content";
-import { useSidebar } from "./ui/sidebar";
 
 type MKDialogProps = {
   open: Accessor<boolean>;

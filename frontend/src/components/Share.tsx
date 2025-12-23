@@ -12,13 +12,7 @@ import { createSignal, createEffect } from "solid-js";
 import { Button } from "./ui/button";
 import { CloseIcon } from "./ui/icons";
 import { Flex } from "./ui/flex";
-import {
-  action,
-  json,
-  reload,
-  useAction,
-  useSubmission,
-} from "@solidjs/router";
+import { action, json, useAction, useSubmission } from "@solidjs/router";
 import { getRequestEvent } from "solid-js/web";
 import { auth } from "~/lib/auth";
 import { showToast } from "./ui/toast";

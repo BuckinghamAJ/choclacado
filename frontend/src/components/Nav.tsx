@@ -1,8 +1,6 @@
-import { createAsync, useLocation, useNavigate } from "@solidjs/router";
-import { createSignal, Show, Suspense } from "solid-js";
-import verifyUser from "~/lib/queries";
+import { useNavigate } from "@solidjs/router";
+import { createSignal } from "solid-js";
 import ShareResource from "./Share";
-import { useSidebar } from "./ui/sidebar";
 import { AvatarIcon, BookmarkIcon, LogOutIcon, MKLogoIcon } from "./ui/icons";
 import {
   NavigationMenu,

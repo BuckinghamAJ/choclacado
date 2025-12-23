@@ -1,12 +1,4 @@
-import {
-  Accessor,
-  createEffect,
-  createMemo,
-  createResource,
-  createSignal,
-  Suspense,
-  useContext,
-} from "solid-js";
+import { Accessor, Suspense, useContext } from "solid-js";
 import Filter from "./Filter";
 import MKInput from "./ui/mk-input";
 import { PostContext, UserContext, UtilityContext } from "./context/create";
