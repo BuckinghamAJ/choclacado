@@ -31,9 +31,9 @@ func (s *FiberServer) RegisterFiberRoutes() {
 
 	api.Get("/me", s.verifyAuthHandler)
 	api.Get("/posts", s.getAllPostsHandler)
-	api.Post("/posts", s.addNewPost)
-	api.Delete("/posts/:id", s.deletePost)
-	api.Patch("/posts/:id", s.updatePost)
+	api.Post("/posts", s.addNewPostHandler)
+	api.Delete("/posts/:id", s.deletePostHandler)
+	api.Patch("/posts/:id", s.updatePostHandler)
 
 }
 
@@ -90,11 +90,11 @@ func (s *FiberServer) getAllPostsHandler(c *fiber.Ctx) error {
 	return posts.GetAll(c, s.db.Queries())
 }
 
-func (s *FiberServer) addNewPost(c *fiber.Ctx) error {
+func (s *FiberServer) addNewPostHandler(c *fiber.Ctx) error {
 	return posts.Add(c, s.db.Queries())
 }
 
-func (s *FiberServer) deletePost(c *fiber.Ctx) error {
+func (s *FiberServer) deletePostHandler(c *fiber.Ctx) error {
 	postIdStr := c.Params("id")
 	postIdInt, err := strconv.ParseInt(postIdStr, 10, 32)
 	if err != nil {
@@ -106,7 +106,7 @@ func (s *FiberServer) deletePost(c *fiber.Ctx) error {
 	return posts.Delete(c, s.db.Queries(), postId)
 }
 
-func (s *FiberServer) updatePost(c *fiber.Ctx) error {
+func (s *FiberServer) updatePostHandler(c *fiber.Ctx) error {
 
 	postIdStr := c.Params("id")
 	postIdInt, err := strconv.ParseInt(postIdStr, 10, 32)

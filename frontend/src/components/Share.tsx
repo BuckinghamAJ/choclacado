@@ -391,7 +391,7 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
                   setSentUpdate(true);
                 }}
               >
-                Update Resource
+                Update
               </ShareButton>
             </Show>
           </Flex>
