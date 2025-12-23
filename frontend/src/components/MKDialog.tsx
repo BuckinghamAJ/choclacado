@@ -162,7 +162,6 @@ export function MKDialogEdit({ open, post }: MKDialogViewProps) {
   const updatePostAction = useAction(updatePost);
   const updatePostSubmission = useSubmission(updatePost);
   const [sentUpdate, setSentUpdate] = createSignal(false);
-  const { refetch } = useContext(PostContext);
 
   createEffect(() => {
     const p = post();
@@ -183,7 +182,6 @@ export function MKDialogEdit({ open, post }: MKDialogViewProps) {
         title: "Success!",
         description: "Post Updated.",
       });
-      refetch();
       setSentUpdate(false);
     }
 

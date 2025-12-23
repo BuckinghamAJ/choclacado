@@ -5,6 +5,7 @@ import {
   query,
   redirect,
   revalidate,
+  RouteDefinition,
   useNavigate,
 } from "@solidjs/router";
 import {
@@ -60,6 +61,12 @@ const getAllPosts = query(async () => {
   return data;
 }, "getAllPosts");
 
+export const route = {
+  preload: () => {
+    getAllPosts();
+  },
+} satisfies RouteDefinition;
+
 export default function Home() {
   const authUser = createAsync(() => verifyUser());
   const navigate = useNavigate();
@@ -75,14 +82,11 @@ export default function Home() {
     setUserId(authUser()?.ID);
   });
 
-  const [posts, { mutate, refetch }] = createResource(
-    () => authUser()?.ID,
-    () => getAllPosts(),
-  );
-
-  const mutatePosts = (newPost) => {
-    mutate((posts) => [newPost, ...posts]);
-  };
+  const posts = createAsync(async () => {
+    const user = authUser();
+    if (!user?.ID) return null;
+    return getAllPosts();
+  });
 
   // Dialog View
   const [openDialog, setOpenDialog] = createSignal(false);
@@ -138,8 +142,6 @@ export default function Home() {
       <PostContext.Provider
         value={{
           posts,
-          mutatePosts,
-          refetch,
           singlePost,
           setSinglePost,
           filteredPosts,
@@ -171,3 +173,5 @@ export default function Home() {
     </>
   );
 }
+
+export { getAllPosts };

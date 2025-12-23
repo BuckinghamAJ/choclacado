@@ -8,6 +8,7 @@ import {
   on,
   createSignal,
   Accessor,
+  untrack,
 } from "solid-js";
 import MKIcon, {
   ExternalLinkIcon,
@@ -22,11 +23,12 @@ import { Flex } from "./flex";
 import { Button } from "./button";
 import { auth } from "~/lib/auth";
 import { getRequestEvent } from "solid-js/web";
-import { action, useAction, useSubmission } from "@solidjs/router";
+import { action, json, useAction, useSubmission } from "@solidjs/router";
 import { PostContext, UserContext, UtilityContext } from "../context/create";
 import { showToast } from "./toast";
 import { Post } from "../Posts";
 import { useSidebar } from "./sidebar";
+import { getAllPosts } from "~/routes";
 
 type MKCardProps = {
   id: number;
@@ -148,7 +150,10 @@ const deletePost = action(async (id: number, userId: string) => {
     throw Error("Issue deleting post");
   }
 
-  return { status: "ok" };
+  return json(
+    { success: true, message: "Deleted!" },
+    { revalidate: getAllPosts.key },
+  );
 });
 
 type EditDeleteProps = {
@@ -161,35 +166,10 @@ function EditDelete({ postId }: EditDeleteProps) {
   const deletePostAction = useAction(deletePost);
   const deletePostSubmission = useSubmission(deletePost);
 
-  const [sendToast, setSendToast] = createSignal(false);
-
-  const { posts, setSinglePost, refetch } = useContext(PostContext);
+  const { posts, setSinglePost } = useContext(PostContext);
   const { confirmDelete } = useContext(UtilityContext);
 
   const { toggleSidebar } = useSidebar();
-
-  createEffect(() => {
-    if (sendToast()) {
-      if (deletePostSubmission.error !== undefined) {
-        console.log("error!", deletePostSubmission.error);
-        showToast({
-          variant: "error",
-          title: "Problem!",
-          description: "Could Not Delete Post",
-        });
-      }
-      if (deletePostSubmission.result !== undefined) {
-        showToast({
-          variant: "default",
-          title: "Delete",
-          description: "Post was successfully deleted",
-        });
-        refetch();
-      }
-
-      setSendToast(false);
-    }
-  });
 
   return (
     <Flex alignItems="end" flexDirection="row" justifyContent="end">
@@ -212,9 +192,23 @@ function EditDelete({ postId }: EditDeleteProps) {
           e.stopPropagation();
           const confirmed = await confirmDelete();
           if (!confirmed) return;
-
           await deletePostAction(postId, userId());
-          setSendToast(true);
+
+          if (deletePostSubmission.result?.success) {
+            showToast({
+              variant: "default",
+              title: "Delete",
+              description: "Post was successfully deleted",
+            });
+          }
+
+          if (deletePostSubmission.error) {
+            showToast({
+              variant: "error",
+              title: "Problem!",
+              description: "Could Not Delete Post",
+            });
+          }
         }}
       >
         <DeleteIcon />

@@ -12,7 +12,13 @@ import { createSignal, createEffect } from "solid-js";
 import { Button } from "./ui/button";
 import { CloseIcon } from "./ui/icons";
 import { Flex } from "./ui/flex";
-import { action, useAction, useSubmission } from "@solidjs/router";
+import {
+  action,
+  json,
+  reload,
+  useAction,
+  useSubmission,
+} from "@solidjs/router";
 import { getRequestEvent } from "solid-js/web";
 import { auth } from "~/lib/auth";
 import { showToast } from "./ui/toast";
@@ -20,6 +26,7 @@ import { PostContext } from "./context/create";
 import ResourceSelect, { getResourceId } from "./ResourceSelect";
 import { Post } from "./Posts";
 import MKContent from "./Content";
+import { getAllPosts } from "~/routes";
 
 export default function ShareResource() {
   const { setOpenMobile, setOpen, isMobile, toggleSidebar } = useSidebar();
@@ -96,7 +103,10 @@ const submitNewPost = action(
       throw Error("Error submitting a resource post");
     }
 
-    return data;
+    return json(
+      { success: true, message: "Deleted!" },
+      { revalidate: getAllPosts.key },
+    );
   },
   "newPost",
 );
@@ -150,13 +160,14 @@ const updatePost = action(
       throw Error("Error updating a resource post");
     }
 
-    return { status: "Ok" };
+    return json(
+      { success: true, message: "Updated!" },
+      { revalidate: getAllPosts.key },
+    );
   },
 );
 
 export function ShareSideBar({ post }: ShareSideBarProps) {
-  const { refetch } = useContext(PostContext);
-
   const [title, setTitle] = createSignal("");
   const [description, setDescription] = createSignal("");
   const [tags, setTags] = createSignal<string[]>(); // TODO: Figure out how to go about this
@@ -183,7 +194,6 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
         title: "Success!",
         description: "Post Updated.",
       });
-      refetch();
       setSentUpdate(false);
     }
 
@@ -212,7 +222,7 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
     }
   });
 
-  const { posts, mutatePosts } = useContext(PostContext);
+  const { posts } = useContext(PostContext);
 
   const [sentSubmission, setSentSubmission] = createSignal(false);
 
@@ -235,7 +245,6 @@ export function ShareSideBar({ post }: ShareSideBarProps) {
       !newPostSubmission.error &&
       newPostSubmission.result
     ) {
-      mutatePosts(newPostSubmission.result);
       showToast({
         variant: "success",
         title: "Success!",
