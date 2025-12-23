@@ -5,9 +5,6 @@ RUN corepack enable
 
 WORKDIR /app
 
-# Create a non-root user and group
-RUN addgroup --system appuser && adduser --system --ingroup appuser appuser
-
 FROM base AS dev
 ENV CI=false
 COPY package.json pnpm-lock.yaml ./
@@ -35,6 +32,8 @@ COPY --from=prod-deps /app/pnpm-lock.yaml /app/pnpm-lock.yaml
 COPY --from=build /app/.vinxi /app/.vinxi
 COPY --from=build /app/.output /app/.output
 
+RUN chown -R node:node /app
+USER node
+
 EXPOSE 4242
-USER appuser
 CMD [ "pnpm", "prod"]
