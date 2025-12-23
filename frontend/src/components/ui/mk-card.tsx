@@ -7,6 +7,7 @@ import {
   createEffect,
   on,
   createSignal,
+  Accessor,
 } from "solid-js";
 import MKIcon, {
   ExternalLinkIcon,
@@ -155,7 +156,7 @@ type EditDeleteProps = {
 };
 
 function EditDelete({ postId }: EditDeleteProps) {
-  const userId: string = useContext(UserContext) as string;
+  const userId: Accessor<string> = useContext(UserContext) as Accessor<string>;
 
   const deletePostAction = useAction(deletePost);
   const deletePostSubmission = useSubmission(deletePost);
@@ -212,7 +213,7 @@ function EditDelete({ postId }: EditDeleteProps) {
           const confirmed = await confirmDelete();
           if (!confirmed) return;
 
-          await deletePostAction(postId, userId);
+          await deletePostAction(postId, userId());
           setSendToast(true);
         }}
       >
